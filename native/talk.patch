@@ -1,0 +1,36 @@
+Index: app/webrtc/peerconnectionfactory.h
+===================================================================
+--- app/webrtc/peerconnectionfactory.h	(revision 324)
++++ app/webrtc/peerconnectionfactory.h	(working copy)
+@@ -87,7 +87,7 @@
+   virtual ~PeerConnectionFactory();
+ 
+ 
+- private:
++ protected:
+   bool Initialize_s();
+   void Terminate_s();
+   talk_base::scoped_refptr<AudioSourceInterface> CreateAudioSource_s(
+@@ -101,7 +101,7 @@
+       PortAllocatorFactoryInterface* allocator_factory,
+       PeerConnectionObserver* observer);
+   // Implements talk_base::MessageHandler.
+-  void OnMessage(talk_base::Message* msg);
++  virtual void OnMessage(talk_base::Message* msg);
+ 
+   bool owns_ptrs_;
+   talk_base::Thread* signaling_thread_;
+Index: libjingle_all.gyp
+===================================================================
+--- libjingle_all.gyp	(revision 324)
++++ libjingle_all.gyp	(working copy)
+@@ -33,7 +33,8 @@
+       'dependencies': [ 
+         'libjingle.gyp:*',  
+         'libjingle_examples.gyp:*',  
+-        'libjingle_tests.gyp:*',  
++        'libjingle_tests.gyp:*', 
++        'simplertc.gyp:*', 
+       ],
+     },
+   ],
