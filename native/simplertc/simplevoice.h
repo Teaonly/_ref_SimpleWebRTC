@@ -1,5 +1,5 @@
-#ifndef _CAMERAVOICEENGINE_H_
-#define _CAMERAVOICEENGINE_H_
+#ifndef _SIMPLEVOICEENGINE_H_
+#define _SIMPLEVOICEENGINE_H_
 
 #include <string>
 #include <vector>

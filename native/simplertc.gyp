@@ -41,6 +41,8 @@
         'simplertc/simplemedia.cpp',
         'simplertc/simplevoice.h',
         'simplertc/simplevoice.cpp',
+        'simplertc/simplevideo.h',
+        'simplertc/simplevideo.cpp',
       ],
     },
   ]

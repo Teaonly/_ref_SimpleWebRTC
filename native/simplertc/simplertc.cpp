@@ -9,12 +9,12 @@ enum {
 };
 
 SimpleRTC::SimpleRTC(const std::string& myName) {
+    stream_ = NULL;
     peer_ = NULL;
+    my_name_ = myName;
 
     signal_thread_ = new talk_base::Thread();
     signal_thread_->Start();
-
-    my_name_ = myName;
 }
 
 SimpleRTC::~SimpleRTC() {
@@ -27,7 +27,7 @@ SimpleRTC::~SimpleRTC() {
 
 void SimpleRTC::Login(const std::string &server, 
                const unsigned short port) {
-    peer_ =  new Peer(server, port, my_name_, "mixer", signal_thread_);
+    peer_ =  new Peer(server, port, my_name_, "simple", signal_thread_);
     peer_->SignalOnline.connect(this, &SimpleRTC::onOnLine);
     peer_->SignalOffline.connect(this, &SimpleRTC::onOffline);
     peer_->SignalRemoteOnline.connect(this, &SimpleRTC::onRemoteOnline);
@@ -45,8 +45,8 @@ void SimpleRTC::Run() {
 void SimpleRTC::OnMessage(talk_base::Message *msg) { 
     switch (msg->message_id) {
         case MSG_RTC_CALL:
-            //TestCall();
-            break;
+            makeCall();
+            break;     
     }
 }
 
@@ -55,23 +55,18 @@ void SimpleRTC::onOnLine(bool isOk) {
 }
 
 void SimpleRTC::onOffline() {
-    std::cout << "[ROOM]    Can't login to server, exiting..." << std::endl;
+    std::cout << "[NATIVE]    Can't login to server, exiting..." << std::endl;
     exit(-1);
 }
 
 void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &role) {
-#if 0
-    //
-    //  Debug for one one test
-    //
-    if ( test_factory_.get() == NULL) {
-        test_factory_ = webrtc::CreateMeetingFactory("test_" + remote, "web");
-        test_stream_ = new RtcStream(remote, test_factory_); 
-        test_stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
-        test_stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);
+    if ( stream_ == NULL && factory_.get() == NULL) {
+        factory_ = webrtc::CreateRtcFactory();
+        stream_ = new RtcStream(remote, factory_);
+        stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
+        stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);
         signal_thread_->PostDelayed(1000, this, MSG_RTC_CALL);
     }
-#endif
 }
 
 void SimpleRTC::onRemoteOffline(const std::string &remote) {
@@ -79,11 +74,18 @@ void SimpleRTC::onRemoteOffline(const std::string &remote) {
 }
 
 void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std::string>& msgBody) {
-
+    if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
+        stream_->SetupLocalStream(false, true);
+        stream_->CreateOfferDescription();    
+    } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
+        stream_->SetRemoteDescription( msgBody[2] );
+    } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "cand" ) {
+        stream_->SetRemoteCandidate(msgBody[2]);
+    }
 }
 
 void SimpleRTC::onPrintString(const std::string& msg) {
-//    std::cout << msg << std::endl;
+    //std::cout << msg << std::endl;
 }
 
 void SimpleRTC::OnLocalCandidate(RtcStream* stream, const std::string& cand) {
@@ -102,13 +104,11 @@ void SimpleRTC::OnLocalDescription(RtcStream* stream, const std::string& desc) {
     peer_->SendMessage( stream->id(), msgBody);
 }
 
-/*
-void SimpleRTC::TestCall() {
+void SimpleRTC::makeCall() {
     std::vector<std::string> msgBody;
-    msgBody.push_back( "rtc");
     msgBody.push_back( "call");
-    peer_->SendMessage( test_stream_->id(), msgBody);
+    msgBody.push_back( "media");
+    peer_->SendMessage( stream_->id(), msgBody);
 }
-*/
 
 

@@ -36,6 +36,7 @@ protected:
 private:
     void OnLocalDescription(RtcStream* stream, const std::string& desc);
     void OnLocalCandidate(RtcStream* stream, const std::string& cand);
+    void makeCall(); 
 
 private:
     // thread resource

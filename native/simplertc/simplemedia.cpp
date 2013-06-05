@@ -2,7 +2,7 @@
 
 #include "simplemedia.h"
 #include "simplevoice.h"
-//#include "cameravideoengine.h"
+#include "simplevideo.h"
 
 namespace cricket {
 
@@ -38,7 +38,7 @@ void SimpleMediaEngine::Terminate() {
 
 int SimpleMediaEngine::GetCapabilities() {
     //return VIDEO_RECV | VIDEO_SEND | AUDIO_RECV | AUDIO_SEND;
-    return VIDEO_SEND;
+    return VIDEO_SEND | VIDEO_RECV;
 }
 
 VoiceMediaChannel* SimpleMediaEngine::CreateChannel() {
@@ -52,15 +52,11 @@ VideoMediaChannel* SimpleMediaEngine::CreateVideoChannel(
         VoiceMediaChannel* voice_media_channel) {
     std::cout << "[MEDIA]\tCreateVideoMediaChannel" << std::endl;
 
-#if 0
-    CameraVideoEngine* video_engine = NULL;
-    video_engine = new CameraVideoEngine(); 
-    CameraVideoMediaChannel* channel = new CameraVideoMediaChannel(video_engine, voice_media_channel, worker_thread_);
+    SimpleVideoEngine* video_engine = NULL;
+    video_engine = new SimpleVideoEngine(); 
+    SimpleVideoMediaChannel* channel = new SimpleVideoMediaChannel(video_engine, voice_media_channel, worker_thread_);
 
     return channel;
-#else
-    return NULL;
-#endif    
 }
 
 SoundclipMedia* SimpleMediaEngine::CreateSoundclip() {

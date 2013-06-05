@@ -1,5 +1,5 @@
-#ifndef _CAMERAMEDIAENGINE_H_
-#define _CAMERAMEDIAENGINE_H_
+#ifndef _SIMPLEMEDIAENGINE_H_
+#define _SIMPLEMEDIAENGINE_H_
 
 #include <string>
 #include <vector>

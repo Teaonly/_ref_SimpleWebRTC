@@ -64,11 +64,12 @@ protected:
 RtcStream::RtcStream(const std::string& id,
                      webrtc::RtcFactory* factory):
                   id_(id), factory_(factory) {
-
     webrtc::PeerConnectionInterface::IceServers servers;
+    
     webrtc::PeerConnectionInterface::IceServer server;
     server.uri = "stun:stun.l.google.com:19302";
-    servers.push_back(server);
+    //servers.push_back(server);
+    
     connection_ = factory_->CreatePeerConnection(servers, 
                                                  NULL,
                                                  this); 
