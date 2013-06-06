@@ -187,7 +187,7 @@ connect.createServer(
     ).listen(18080);
     
 console.log("=========================================");
-console.log("   DroidMeeting server is running.... ");
+console.log("   Peer server is running.... ");
 console.log("   The client tcp port is 19790");
 console.log("   The websocket port is 19800");
 console.log("   The webclient is http://localhost:18080");
