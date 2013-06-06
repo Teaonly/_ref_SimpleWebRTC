@@ -107,7 +107,7 @@ void SimpleRTC::OnLocalDescription(RtcStream* stream, const std::string& desc) {
 void SimpleRTC::makeCall() {
     std::vector<std::string> msgBody;
     msgBody.push_back( "call");
-    msgBody.push_back( "null");
+    msgBody.push_back( "media");
     peer_->SendMessage( stream_->id(), msgBody);
 }
 

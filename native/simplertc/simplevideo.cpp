@@ -231,7 +231,7 @@ bool SimpleVideoMediaChannel::RequestIntraFrame() {
 }
 
 void SimpleVideoMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
-#if 0
+#if 1
     //  This is a simple loopback
     static uint8 buf[2048]; 
     const void* data = packet->data();
@@ -355,7 +355,8 @@ void SimpleVideoMediaChannel::OnSendPacket(SimpleVideoEngine *eng, const void *d
     talk_base::Buffer new_packet((const void*)buf, len, 2048);
     network_interface()->SendPacket(&new_packet);
 #else
-    if ( data == NULL) {
+    //if ( data == NULL) {
+    if (0) {
         static FILE *fp = NULL;
         static unsigned short seq = 0;
         static uint8 buf[2048];
