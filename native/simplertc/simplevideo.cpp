@@ -9,6 +9,10 @@
 
 #include "simplevideo.h"
 
+enum {
+    MSG_RTP_TIMER,
+};
+
 namespace cricket {
 class SimpleVideoRtcpFeedback : public webrtc::RtcpFeedback, public webrtc::RtcpIntraFrameObserver {
 public:
@@ -99,11 +103,20 @@ SimpleVideoEngine::~SimpleVideoEngine() {
 }
 
 void SimpleVideoEngine::OnMessage(talk_base::Message* msg) {
+    switch( msg->message_id) {
+        case MSG_RTP_TIMER:
+            SignalSendPacket(this, 0, 0);
+            encoding_thread_->PostDelayed(100, this, MSG_RTP_TIMER);
+            break;
+    }
 }
 
 
 void SimpleVideoEngine::StartSend(bool send) {
     isSend_ = send;
+    if ( isSend_ == true) {
+        encoding_thread_->PostDelayed(1000, this, MSG_RTP_TIMER); 
+    }
 }
 
 int SimpleVideoEngine::SendPacket(int channel, const void *data, int len) {
@@ -218,14 +231,33 @@ bool SimpleVideoMediaChannel::RequestIntraFrame() {
 }
 
 void SimpleVideoMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
-    static uint8 buf[2048]; 
+#if 0
     //  This is a simple loopback
+    static uint8 buf[2048]; 
     const void* data = packet->data();
     size_t len = packet->length();
     memcpy(buf, data, len);
     SetRtpSsrc(buf, len, target_ssrc_);
     talk_base::Buffer new_packet((const void*)buf, len, 2048);
     network_interface()->SendPacket(&new_packet);
+#endif
+    if (0) {
+        static FILE *fp = NULL;
+        static unsigned short seq = 0;
+        static uint8 buf[2048];
+        if ( fp == NULL) {
+            fp = fopen("./vp8.rtp", "rb");
+        }
+        if ( feof(fp) ) {
+            fseek(fp, 0l, SEEK_SET);
+        }
+        fread(buf, 1, 2048, fp);
+        size_t len = *(size_t *)&buf[2040];
+        SetRtpSsrc(buf, len, target_ssrc_);
+        SetRtpSeqNum(buf, len, seq++);
+        talk_base::Buffer new_packet((const void*)buf, len, 2048);
+        network_interface()->SendPacket(&new_packet);
+    }
 }
 
 void SimpleVideoMediaChannel::OnRtcpReceived(talk_base::Buffer* packet) {
@@ -316,11 +348,31 @@ bool SimpleVideoMediaChannel::GetOptions(VideoOptions* options) const {
 }
 
 void SimpleVideoMediaChannel::OnSendPacket(SimpleVideoEngine *eng, const void *data, int len) {
+#if 0
     static uint8 buf[2048];
     memcpy(buf, data, len);
     SetRtpSsrc(buf, len, target_ssrc_);
     talk_base::Buffer new_packet((const void*)buf, len, 2048);
     network_interface()->SendPacket(&new_packet);
+#else
+    if ( data == NULL) {
+        static FILE *fp = NULL;
+        static unsigned short seq = 0;
+        static uint8 buf[2048];
+        if ( fp == NULL) {
+            fp = fopen("./vp8.rtp", "rb");
+        }
+        if ( feof(fp) ) {
+            fseek(fp, 0l, SEEK_SET);
+        }
+        fread(buf, 1, 2048, fp);
+        size_t len = *(size_t *)&buf[2040];
+        SetRtpSsrc(buf, len, target_ssrc_);
+        SetRtpSeqNum(buf, len, seq++);
+        talk_base::Buffer new_packet((const void*)buf, len, 2048);
+        network_interface()->SendPacket(&new_packet);
+    }
+#endif
 }
 
 void SimpleVideoMediaChannel::OnSendRTCPPacket(SimpleVideoEngine *eng, const void *data, int len) {
