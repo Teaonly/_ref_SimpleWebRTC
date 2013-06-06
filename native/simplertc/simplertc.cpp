@@ -75,7 +75,7 @@ void SimpleRTC::onRemoteOffline(const std::string &remote) {
 
 void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std::string>& msgBody) {
     if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
-        stream_->SetupLocalStream(false, true);
+        stream_->SetupLocalStream(true, true);
         stream_->CreateOfferDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         stream_->SetRemoteDescription( msgBody[2] );
