@@ -18,7 +18,11 @@ namespace cricket {
 class VoiceMediaChannel;
 class SoundclipMedia;
 
-class SimpleVoiceEngine : public sigslot::has_slots<>, public talk_base::MessageHandler, public webrtc::Transport, public webrtc::RtcpFeedback {
+class SimpleVoiceEngine : public sigslot::has_slots<>, 
+                          public talk_base::MessageHandler, 
+                          public webrtc::Transport, 
+                          public webrtc::RtcpFeedback,
+                          public webrtc::RtpData {
 public:    
     SimpleVoiceEngine();
     ~SimpleVoiceEngine();
@@ -33,11 +37,14 @@ protected:
     virtual void OnMessage(talk_base::Message *msg);
 
     //
-    // interfaces from webrtc::Transport
+    // interfaces from webrtc::Transport and webrtc::RtpData
     // 
     virtual int SendPacket(int channel, const void *data, int len);
     virtual int SendRTCPPacket(int channel, const void *data, int len);
-    
+    virtual int32_t OnReceivedPayloadData( const uint8_t* payloadData,
+                                           const uint16_t payloadSize,
+                                           const webrtc::WebRtcRTPHeader* rtpHeader);
+
     //
     // interface from webrtc::RtcpFeedback 
     //
@@ -77,6 +84,7 @@ protected:
 private:    
     webrtc::RtpRtcp* rtp_rtcp_module_;
     
+    ISACStruct* decoder_;    
     ISACStruct* encoder_; 
     talk_base::Thread* encoding_thread_;
     bool isSend_;

@@ -15,6 +15,9 @@ SimpleVoiceEngine::SimpleVoiceEngine() {
     isSend_ = false;
     WebRtcIsac_Create(&encoder_);
     WebRtcIsac_EncoderInit(encoder_, 0);    
+    WebRtcIsac_Create(&decoder_);
+    WebRtcIsac_DecoderInit(decoder_);    
+
     encoding_thread_ = new talk_base::Thread();
     encoding_thread_->Start();
     
@@ -25,6 +28,7 @@ SimpleVoiceEngine::SimpleVoiceEngine() {
     configuration.id = 2;
     configuration.audio = true;
     configuration.clock = NULL;
+    configuration.incoming_data = this;
     configuration.outgoing_transport = this;
     configuration.rtcp_feedback = this;
     rtp_rtcp_module_ = webrtc::RtpRtcp::CreateRtpRtcp(configuration);
@@ -40,6 +44,7 @@ SimpleVoiceEngine::SimpleVoiceEngine() {
         }
         if ( codec.pltype == 103) {
             rtp_rtcp_module_->RegisterSendPayload(codec);
+            rtp_rtcp_module_->RegisterReceivePayload(codec);
             break;
         }
     }
@@ -76,7 +81,14 @@ int SimpleVoiceEngine::SendPacket(int channel, const void *data, int len) {
 int SimpleVoiceEngine::SendRTCPPacket(int channel, const void *data, int len) {
     SignalSendRTCPPacket(this, data, len);
 }
- 
+
+int32_t SimpleVoiceEngine::OnReceivedPayloadData( const uint8_t* payloadData,
+                                                  const uint16_t payloadSize,
+                                                  const webrtc::WebRtcRTPHeader* rtpHeader) {
+
+    return 0;
+}
+
 //------------------------------------------
 
 SimpleVoiceMediaChannel::SimpleVoiceMediaChannel() {
