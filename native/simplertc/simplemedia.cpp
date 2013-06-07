@@ -18,10 +18,8 @@ SimpleMediaEngine::SimpleMediaEngine(talk_base::Thread* worker_thread)
     codec.preference = 0;
     video_codecs_.push_back(codec); 
 
-    cricket::AudioCodec isac_1(103, "ISAC",   16000, -1,    1, 18);
-    cricket::AudioCodec isac_2(104, "ISAC",   32000, -1,    1, 17);
-    audio_codecs_.push_back(isac_1);
-    audio_codecs_.push_back(isac_2);
+    cricket::AudioCodec isac(103, "ISAC", 16000, 32000, 1, 1);
+    audio_codecs_.push_back(isac);
 }
 
 SimpleMediaEngine::~SimpleMediaEngine() {

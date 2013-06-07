@@ -11,88 +11,136 @@
 #include "talk/media/webrtc/webrtcvoe.h"
 #include "talk/session/media/channel.h"
 #include "talk/media/base/mediachannel.h"
+#include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp_defines.h"
 
 namespace cricket {
 class VoiceMediaChannel;
 class SoundclipMedia;
 
-class SimpleVoiceMediaEngine {
-    // TODO 
+class SimpleVoiceEngine : public sigslot::has_slots<>, public talk_base::MessageHandler, public webrtc::Transport, public webrtc::RtcpFeedback {
+public:    
+    SimpleVoiceEngine();
+    ~SimpleVoiceEngine();
+    
+protected:
+    virtual void OnMessage(talk_base::Message *msg);
+
+    //
+    // interfaces from webrtc::Transport
+    // 
+    virtual int SendPacket(int channel, const void *data, int len) {
+        return 0;
+    }
+    virtual int SendRTCPPacket(int channel, const void *data, int len) {
+        return 0;
+    }
+    //
+    // interface from webrtc::RtcpFeedback 
+    //
+    virtual void OnRTCPPacketTimeout(const int32_t id) {
+    }
+    virtual void OnLipSyncUpdate(const int32_t id, 
+            const int32_t audioVideoOffset) {
+    };  
+    virtual void OnXRVoIPMetricReceived(
+            const int32_t id, 
+            const webrtc::RTCPVoIPMetric* metric) {
+    };  
+    virtual void OnApplicationDataReceived(const int32_t id, 
+            const uint8_t subType,
+            const uint32_t name,
+            const uint16_t length,
+            const uint8_t* data) {
+    };  
+    virtual void OnSendReportReceived(const int32_t id, 
+            const uint32_t senderSSRC,
+            uint32_t ntp_secs,
+            uint32_t ntp_frac,
+            uint32_t timestamp) {
+    };  
+    virtual void OnReceiveReportReceived(const int32_t id, 
+            const uint32_t senderSSRC) {
+    };  
+    virtual void OnReceivedIntraFrameRequest(uint32_t ssrc) {
+    };  
+    virtual void OnReceivedSLI(uint32_t ssrc,
+            uint8_t pictureId) {
+    };  
+    virtual void OnReceivedRPSI(uint32_t ssrc,
+            uint64_t pictureId) {
+    };  
+    virtual void OnLocalSsrcChanged(uint32_t old_ssrc, uint32_t new_ssrc) {
+    }; 
+
+private:    
+
 };
 
 class SimpleVoiceMediaChannel: public VoiceMediaChannel {
 public:
-  SimpleVoiceMediaChannel() {}
-  virtual ~SimpleVoiceMediaChannel() {}
-  
-  // Sets the codecs/payload types to be used for incoming media.
-  virtual bool SetRecvCodecs(const std::vector<AudioCodec>& codecs) {
-      //AudioCodec default_code(9, "G722", 16000, 0, 1, 0);
-      //codecs.push_back(default_code);
-    return true;
-  }
+    SimpleVoiceMediaChannel() {}
+    virtual ~SimpleVoiceMediaChannel() {}
 
-  // Sets the codecs/payload types to be used for outgoing media.
-  virtual bool SetSendCodecs(const std::vector<AudioCodec>& codecs)  {
-  //AudioCodec default_code(9, "G722", 16000, 0, 1, 0);
-  //codecs.push_back(default_code);
-  return true;
-  }
-  // Starts or stops playout of received audio.
-  virtual bool SetPlayout(bool playout)  {return true;}
-  // Starts or stops sending (and potentially capture) of local audio.
-  virtual bool SetSend(cricket::SendFlags flag) {return true;}
-  virtual void OnReadyToSend(bool flag)  {}
-  // Gets current energy levels for all incoming streams.
-  virtual bool GetActiveStreams(AudioInfo::StreamList* actives)  {return true;}
-  // Get the current energy level of the stream sent to the speaker.
-  virtual int GetOutputLevel()  {return 1;}
-  // Get the time in milliseconds since last recorded keystroke, or negative.
-  virtual int GetTimeSinceLastTyping()  {return 1;}
-  // Temporarily exposed field for tuning typing detect options.
-  virtual void SetTypingDetectionParameters(int time_window,
-    int cost_per_typing, int reporting_threshold, int penalty_decay,
-    int type_event_delay)  {}
-  // Set left and right scale for speaker output volume of the specified ssrc.
-  virtual bool SetOutputScaling(uint32 ssrc, double left, double right)  {return true;}
-  // Get left and right scale for speaker output volume of the specified ssrc.
-  virtual bool GetOutputScaling(uint32 ssrc, double* left, double* right)  {return true;}
-  // Specifies a ringback tone to be played during call setup.
-  virtual bool SetRingbackTone(const char *buf, int len)  {return true;}
-  // Plays or stops the aforementioned ringback tone
-  virtual bool PlayRingbackTone(uint32 ssrc, bool play, bool loop)  {return true;}
-  // Returns if the telephone-event has been negotiated.
-  virtual bool CanInsertDtmf() { return false; }
-  // Send and/or play a DTMF |event| according to the |flags|.
-  // The DTMF out-of-band signal will be used on sending.
-  // The |ssrc| should be either 0 or a valid send stream ssrc.
-  // The valid value for the |event| are -2 to 15.
-  // kDtmfReset(-2) is used to reset the DTMF.
-  // kDtmfDelay(-1) is used to insert a delay to the end of the DTMF queue.
-  // 0 to 15 which corresponding to DTMF event 0-9, *, #, A-D.
-  virtual bool InsertDtmf(uint32 ssrc, int event, int duration, int flags)  {return true;}
-  // Gets quality stats for the channel.
-  virtual bool GetStats(VoiceMediaInfo* info)  {return true;}
-  // Gets last reported error for this media channel.
-  virtual void GetLastMediaError(uint32* ssrc,
-                                 VoiceMediaChannel::Error* error) {
-    ASSERT(error != NULL);
-    *error = ERROR_NONE;
-  }
-  // Sets the media options to use.
-  virtual bool SetOptions(const AudioOptions& options)  {return true;}
-  virtual bool GetOptions(AudioOptions* options) const  {return true;}
-  
-  virtual void OnPacketReceived(talk_base::Buffer*) {}
-  virtual void OnRtcpReceived(talk_base::Buffer*){}
-  virtual bool AddSendStream(const cricket::StreamParams&){return true;}
-  virtual bool RemoveSendStream(uint32){return true;}
-  virtual bool AddRecvStream(const cricket::StreamParams&){return true;}
-  virtual bool RemoveRecvStream(uint32){return true;}
-  virtual bool MuteStream(uint32, bool){return true;}
-  virtual bool SetRecvRtpHeaderExtensions(const std::vector<cricket::RtpHeaderExtension>&){return true;}
-  virtual bool SetSendRtpHeaderExtensions(const std::vector<cricket::RtpHeaderExtension>&){return true;}
-  virtual bool SetSendBandwidth(bool, int){return true;}
+    // Sets the media options to use.
+    virtual bool SetOptions(const AudioOptions& options)  {return true;}
+    virtual bool GetOptions(AudioOptions* options) const  {return true;}
+    virtual bool SetRecvRtpHeaderExtensions(const std::vector<cricket::RtpHeaderExtension>&){return true;}
+    virtual bool SetSendRtpHeaderExtensions(const std::vector<cricket::RtpHeaderExtension>&){return true;}
+
+    // Sets the codecs/payload types to be used for incoming media.
+    virtual bool SetRecvCodecs(const std::vector<AudioCodec>& codecs);
+    // Sets the codecs/payload types to be used for outgoing media.
+    virtual bool SetSendCodecs(const std::vector<AudioCodec>& codecs);
+
+    // Starts or stops playout of received audio.
+    virtual bool SetPlayout(bool playout);
+    // Starts or stops sending (and potentially capture) of local audio.
+    virtual bool SetSend(cricket::SendFlags flag);
+    virtual void OnReadyToSend(bool flag);
+    
+    // stream create and removed
+    virtual bool AddSendStream(const cricket::StreamParams&);
+    virtual bool RemoveSendStream(uint32);
+    virtual bool AddRecvStream(const cricket::StreamParams&);
+    virtual bool RemoveRecvStream(uint32);
+    virtual bool MuteStream(uint32, bool);
+    virtual bool SetSendBandwidth(bool, int){return true;}
+
+    // data input 
+    virtual void OnPacketReceived(talk_base::Buffer*) {}
+    virtual void OnRtcpReceived(talk_base::Buffer*){}
+    
+    /******************* Advanced feature don't needed in app ************/
+    // Gets current energy levels for all incoming streams.
+    virtual bool GetActiveStreams(AudioInfo::StreamList* actives)  {return true;}
+    // Get the current energy level of the stream sent to the speaker.
+    virtual int GetOutputLevel()  {return 1;}
+    // Get the time in milliseconds since last recorded keystroke, or negative.
+    virtual int GetTimeSinceLastTyping()  {return 0;}
+    // Temporarily exposed field for tuning typing detect options.
+    virtual void SetTypingDetectionParameters(int time_window,
+        int cost_per_typing, int reporting_threshold, int penalty_decay,
+        int type_event_delay)  {}
+    // Set left and right scale for speaker output volume of the specified ssrc.
+    virtual bool SetOutputScaling(uint32 ssrc, double left, double right)  {return true;}
+    // Get left and right scale for speaker output volume of the specified ssrc.
+    virtual bool GetOutputScaling(uint32 ssrc, double* left, double* right)  {return true;}
+    // Specifies a ringback tone to be played during call setup.
+    virtual bool SetRingbackTone(const char *buf, int len)  {return true;}
+    // Plays or stops the aforementioned ringback tone
+    virtual bool PlayRingbackTone(uint32 ssrc, bool play, bool loop)  {return true;}
+    // Returns if the telephone-event has been negotiated.
+    virtual bool CanInsertDtmf() { return false; }
+    // Send and/or play a DTMF |event| according to the |flags|.
+    virtual bool InsertDtmf(uint32 ssrc, int event, int duration, int flags)  {return true;}
+    // Gets quality stats for the channel.
+    virtual bool GetStats(VoiceMediaInfo* info)  {return true;}
+    // Gets last reported error for this media channel.
+    virtual void GetLastMediaError(uint32* ssrc, VoiceMediaChannel::Error* error);
+
+private:
+    SimpleVoiceEngine* engine_;
+    unsigned int target_ssrc_;         
 };
 
 	
