@@ -130,9 +130,10 @@ int SimpleVideoEngine::SendRTCPPacket(int channel, const void *data, int len) {
 }
 
 bool SimpleVideoEngine::InsertRtcpPackage(unsigned char* data, unsigned int len) {
-    unsigned int ssrc;
-    GetRtpSsrc(data,len,&ssrc);
+    //unsigned int ssrc;
+    //GetRtpSsrc(data,len,&ssrc);
     rtp_rtcp_module_->IncomingPacket(data, len);
+    rtp_rtcp_module_->Process();
     return true;
 }
 

@@ -38,7 +38,7 @@ void SimpleMediaEngine::Terminate() {
 
 int SimpleMediaEngine::GetCapabilities() {
     //return VIDEO_RECV | VIDEO_SEND | AUDIO_RECV | AUDIO_SEND;
-    return VIDEO_SEND | VIDEO_RECV;
+    return VIDEO_SEND | VIDEO_RECV | AUDIO_RECV | AUDIO_SEND;
 }
 
 VoiceMediaChannel* SimpleMediaEngine::CreateChannel() {
