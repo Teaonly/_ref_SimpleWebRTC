@@ -25,19 +25,19 @@ public:
     
     sigslot::signal3<SimpleVoiceEngine*, const void *, int> SignalSendPacket;
     sigslot::signal3<SimpleVoiceEngine*, const void *, int> SignalSendRTCPPacket;
-     
+
+    void StartSend();
+    bool InsertRtcpPackage(unsigned char *data, unsigned int len);    
+
 protected:
     virtual void OnMessage(talk_base::Message *msg);
 
     //
     // interfaces from webrtc::Transport
     // 
-    virtual int SendPacket(int channel, const void *data, int len) {
-        return 0;
-    }
-    virtual int SendRTCPPacket(int channel, const void *data, int len) {
-        return 0;
-    }
+    virtual int SendPacket(int channel, const void *data, int len);
+    virtual int SendRTCPPacket(int channel, const void *data, int len);
+    
     //
     // interface from webrtc::RtcpFeedback 
     //
@@ -113,8 +113,8 @@ public:
     virtual bool SetSendBandwidth(bool, int){return true;}
 
     // data input 
-    virtual void OnPacketReceived(talk_base::Buffer*) {}
-    virtual void OnRtcpReceived(talk_base::Buffer*){}
+    virtual void OnPacketReceived(talk_base::Buffer*);
+    virtual void OnRtcpReceived(talk_base::Buffer*);
     
     /******************* Advanced feature don't needed in app ************/
     // Gets current energy levels for all incoming streams.
@@ -143,6 +143,10 @@ public:
     virtual bool GetStats(VoiceMediaInfo* info)  {return true;}
     // Gets last reported error for this media channel.
     virtual void GetLastMediaError(uint32* ssrc, VoiceMediaChannel::Error* error);
+
+protected:
+  void OnSendPacket(SimpleVoiceEngine *, const void *data, int len) ;
+  void OnSendRTCPPacket(SimpleVoiceEngine *, const void *data, int len) ;  
 
 private:
     SimpleVoiceEngine* engine_;

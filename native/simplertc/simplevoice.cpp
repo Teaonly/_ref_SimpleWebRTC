@@ -60,17 +60,33 @@ void SimpleVoiceEngine::OnMessage(talk_base::Message *msg) {
 
 }
 
+void SimpleVoiceEngine::StartSend() {
+    isSend_ = true;
+}
+
+bool SimpleVoiceEngine::InsertRtcpPackage(unsigned char *data, unsigned int len) {
+    rtp_rtcp_module_->IncomingPacket(data, len);
+    rtp_rtcp_module_->Process();    
+}
+
+int SimpleVoiceEngine::SendPacket(int channel, const void *data, int len) {
+    SignalSendPacket(this, data, len); 
+}
+
+int SimpleVoiceEngine::SendRTCPPacket(int channel, const void *data, int len) {
+    SignalSendRTCPPacket(this, data, len);
+}
+ 
 //------------------------------------------
 
 SimpleVoiceMediaChannel::SimpleVoiceMediaChannel() {
     engine_ = new SimpleVoiceEngine();
-    
+     
 }
 
 SimpleVoiceMediaChannel::~SimpleVoiceMediaChannel() {
     delete engine_; 
 }
-
 
 bool SimpleVoiceMediaChannel::SetRecvCodecs(const std::vector<AudioCodec>& codecs) {
     return true;
@@ -118,5 +134,43 @@ bool SimpleVoiceMediaChannel::MuteStream(uint32 ssrc, bool isMute) {
     return true;
 }
  
+void SimpleVoiceMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
+ 
+    static uint8 buf[2048];
+    memcpy(buf, packet->data(), packet->length());
+    SetRtpSsrc(buf, packet->length(), target_ssrc_);
+    talk_base::Buffer new_packet((const void*)buf, packet->length(), 2048);
+    if (network_interface() != NULL) {
+        network_interface()->SendPacket(&new_packet);
+    }
+   
+}
 
+void SimpleVoiceMediaChannel::OnRtcpReceived(talk_base::Buffer* packet) {
+    const void* data = packet->data();
+    size_t len = packet->length();
+    static uint8 buf[2048];
+    memcpy(buf, data, len);
+    talk_base::Buffer new_packet((const void*)buf, len, 2048);
+    engine_->InsertRtcpPackage(buf, len);    
+}
 
+void SimpleVoiceMediaChannel::OnSendPacket(SimpleVoiceEngine *eng, const void *data, int len) {
+    static uint8 buf[2048];
+    memcpy(buf, data, len);
+    SetRtpSsrc(buf, len, target_ssrc_);
+    talk_base::Buffer new_packet((const void*)buf, len, 2048);
+    if (network_interface() != NULL) {
+        network_interface()->SendPacket(&new_packet);
+    }
+}
+
+void SimpleVoiceMediaChannel::OnSendRTCPPacket(SimpleVoiceEngine *eng, const void *data, int len) {
+    static uint8 buf[1024];
+    memcpy(&buf, data, len);
+    SetRtpSsrc(buf, len, target_ssrc_);
+    talk_base::Buffer new_packet((const void*)&buf, len, 1024);
+    if (network_interface() != NULL) {
+        network_interface()->SendRtcp(&new_packet);
+    }
+}
