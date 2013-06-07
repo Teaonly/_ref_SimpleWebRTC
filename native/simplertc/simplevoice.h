@@ -12,6 +12,7 @@
 #include "talk/session/media/channel.h"
 #include "talk/media/base/mediachannel.h"
 #include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp_defines.h"
+#include "webrtc/modules/audio_coding/codecs/isac/main/interface/isac.h"
 
 namespace cricket {
 class VoiceMediaChannel;
@@ -22,6 +23,9 @@ public:
     SimpleVoiceEngine();
     ~SimpleVoiceEngine();
     
+    sigslot::signal3<SimpleVoiceEngine*, const void *, int> SignalSendPacket;
+    sigslot::signal3<SimpleVoiceEngine*, const void *, int> SignalSendRTCPPacket;
+     
 protected:
     virtual void OnMessage(talk_base::Message *msg);
 
@@ -61,8 +65,6 @@ protected:
     virtual void OnReceiveReportReceived(const int32_t id, 
             const uint32_t senderSSRC) {
     };  
-    virtual void OnReceivedIntraFrameRequest(uint32_t ssrc) {
-    };  
     virtual void OnReceivedSLI(uint32_t ssrc,
             uint8_t pictureId) {
     };  
@@ -73,13 +75,17 @@ protected:
     }; 
 
 private:    
-
+    webrtc::RtpRtcp* rtp_rtcp_module_;
+    
+    ISACStruct* encoder_; 
+    talk_base::Thread* encoding_thread_;
+    bool isSend_;
 };
 
 class SimpleVoiceMediaChannel: public VoiceMediaChannel {
 public:
-    SimpleVoiceMediaChannel() {}
-    virtual ~SimpleVoiceMediaChannel() {}
+    SimpleVoiceMediaChannel();
+    virtual ~SimpleVoiceMediaChannel();
 
     // Sets the media options to use.
     virtual bool SetOptions(const AudioOptions& options)  {return true;}
