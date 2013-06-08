@@ -15,12 +15,13 @@ SimpleVoiceEngine::SimpleVoiceEngine() {
     isSend_ = false;
     WebRtcIsac_Create(&encoder_);
     WebRtcIsac_EncoderInit(encoder_, 0);    
+    //WebRtcIsac_SetEncSampRate(encoder_, 16000);
     WebRtcIsac_Create(&decoder_);
     WebRtcIsac_DecoderInit(decoder_);    
+    //WebRtcIsac_SetDecSampRate(decoder_, 16000);
 
     encoding_thread_ = new talk_base::Thread();
     encoding_thread_->Start();
-    
     //
     //  RTCP module setup
     //
@@ -69,6 +70,10 @@ void SimpleVoiceEngine::StartSend() {
     isSend_ = true;
 }
 
+bool SimpleVoiceEngine::InsertRtpPackage(unsigned char *data, unsigned int len) {
+    rtp_rtcp_module_->IncomingPacket(data, len);
+}
+
 bool SimpleVoiceEngine::InsertRtcpPackage(unsigned char *data, unsigned int len) {
     rtp_rtcp_module_->IncomingPacket(data, len);
     rtp_rtcp_module_->Process();    
@@ -85,6 +90,20 @@ int SimpleVoiceEngine::SendRTCPPacket(int channel, const void *data, int len) {
 int32_t SimpleVoiceEngine::OnReceivedPayloadData( const uint8_t* payloadData,
                                                   const uint16_t payloadSize,
                                                   const webrtc::WebRtcRTPHeader* rtpHeader) {
+        
+    unsigned char pcm[1024*1024];
+    int16_t speechType;
+    int len = WebRtcIsac_Decode(decoder_, (const uint16_t *) payloadData, payloadSize, (int16_t *)pcm, &speechType);
+    
+    unsigned char codedBuf[1024];
+    int lastLen;
+    
+    for ( int i = 0; i < len / 160; i++ ) {
+        lastLen = WebRtcIsac_Encode(encoder_, (const int16_t*)(pcm + i*320), (int16_t*)codedBuf);
+        if ( lastLen > 0) {
+            rtp_rtcp_module_->SendOutgoingData(webrtc::kAudioFrameSpeech, 103, rtpHeader->header.timestamp, rtpHeader->header.timestamp/30, codedBuf, lastLen, NULL, NULL);
+        }
+    }
 
     return 0;
 }
@@ -93,7 +112,9 @@ int32_t SimpleVoiceEngine::OnReceivedPayloadData( const uint8_t* payloadData,
 
 SimpleVoiceMediaChannel::SimpleVoiceMediaChannel() {
     engine_ = new SimpleVoiceEngine();
-     
+    
+    engine_->SignalSendPacket.connect(this, &SimpleVoiceMediaChannel::OnSendPacket);
+    engine_->SignalSendRTCPPacket.connect(this, &SimpleVoiceMediaChannel::OnSendRTCPPacket);    
 }
 
 SimpleVoiceMediaChannel::~SimpleVoiceMediaChannel() {
@@ -147,15 +168,16 @@ bool SimpleVoiceMediaChannel::MuteStream(uint32 ssrc, bool isMute) {
 }
  
 void SimpleVoiceMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
- 
     static uint8 buf[2048];
     memcpy(buf, packet->data(), packet->length());
+    /*
     SetRtpSsrc(buf, packet->length(), target_ssrc_);
     talk_base::Buffer new_packet((const void*)buf, packet->length(), 2048);
     if (network_interface() != NULL) {
         network_interface()->SendPacket(&new_packet);
     }
-   
+    */
+    engine_->InsertRtpPackage(buf, packet->length() ); 
 }
 
 void SimpleVoiceMediaChannel::OnRtcpReceived(talk_base::Buffer* packet) {

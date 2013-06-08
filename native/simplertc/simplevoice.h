@@ -31,6 +31,7 @@ public:
     sigslot::signal3<SimpleVoiceEngine*, const void *, int> SignalSendRTCPPacket;
 
     void StartSend();
+    bool InsertRtpPackage(unsigned char *data, unsigned int len);
     bool InsertRtcpPackage(unsigned char *data, unsigned int len);    
 
 protected:
