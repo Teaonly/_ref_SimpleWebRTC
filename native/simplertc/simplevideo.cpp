@@ -5,6 +5,7 @@
 #include "talk/base/byteorder.h"
 #include "talk/base/stringutils.h"
 #include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp_defines.h"
+#include "webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h"
 #include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp.h"
 
 #include "simplevideo.h"
@@ -14,35 +15,62 @@ enum {
 };
 
 namespace cricket {
-class SimpleVideoRtcpFeedback : public webrtc::RtcpFeedback, public webrtc::RtcpIntraFrameObserver {
+
+class SimpleVideoRtcpFeedback : public webrtc::RtcpFeedback, public webrtc::RtpFeedback, public webrtc::RtcpIntraFrameObserver {
 public:
     void SetModule(webrtc::RtpRtcp* module) {
         _rtpRtcpModule = module;
     };  
-    virtual void OnRTCPPacketTimeout(const int32_t id) {
-    }
-    virtual void OnLipSyncUpdate(const int32_t id, 
-            const int32_t audioVideoOffset) {
-    };  
-    virtual void OnXRVoIPMetricReceived(
-            const int32_t id, 
-            const webrtc::RTCPVoIPMetric* metric) {
-    };  
+    // callbacks from RtcpFeedback
     virtual void OnApplicationDataReceived(const int32_t id, 
             const uint8_t subType,
             const uint32_t name,
             const uint16_t length,
             const uint8_t* data) {
-    };  
+    }  
+    virtual void OnXRVoIPMetricReceived(
+            const int32_t id, 
+            const webrtc::RTCPVoIPMetric* metric) {
+    } 
+    virtual void OnRTCPPacketTimeout(const int32_t id) {
+    }
     virtual void OnSendReportReceived(const int32_t id, 
             const uint32_t senderSSRC,
             uint32_t ntp_secs,
             uint32_t ntp_frac,
             uint32_t timestamp) {
-    };  
+    }  
     virtual void OnReceiveReportReceived(const int32_t id, 
             const uint32_t senderSSRC) {
-    };  
+    }  
+    
+    // callbacks from RtpFeedback
+    virtual int32_t OnInitializeDecoder(
+            const int32_t id,                                                                
+            const int8_t payloadType,
+            const char payloadName[RTP_PAYLOAD_NAME_SIZE],                                   
+            const int frequency,
+            const uint8_t channels,                                                          
+            const uint32_t rate) {
+        return 0;
+    } 
+    virtual void OnPacketTimeout(const int32_t id) {
+    }
+    virtual void OnReceivedPacket(const int32_t id,                                      
+            const webrtc::RtpRtcpPacketType packetType) {
+    }
+    virtual void OnPeriodicDeadOrAlive(const int32_t id,
+            const webrtc::RTPAliveType alive) {
+    }
+    virtual void OnIncomingSSRCChanged( const int32_t id,                                
+            const uint32_t SSRC) {
+    }
+    virtual void OnIncomingCSRCChanged( const int32_t id,                                
+            const uint32_t CSRC,                             
+            const bool added) {
+    } 
+
+    // callbacks RtcpIntraFrameObserver
     virtual void OnReceivedIntraFrameRequest(uint32_t ssrc) {
     };  
     virtual void OnReceivedSLI(uint32_t ssrc,
@@ -73,14 +101,24 @@ SimpleVideoEngine::SimpleVideoEngine() {
 
     webrtc::RtpRtcp::Configuration configuration;
     configuration.id = 1;
-    configuration.audio = false;
     configuration.clock = NULL;
+    configuration.audio = false;
     configuration.outgoing_transport = this;
+    configuration.incoming_data = this;
+    configuration.incoming_messages = rtcp_feedback_;
     configuration.rtcp_feedback = rtcp_feedback_;
     configuration.intra_frame_callback = rtcp_feedback_;
+    /*
+    configuration.bandwidth_callback = bandwidth_observer;
+    configuration.rtt_observer = rtt_observer; 
+    configuration.remote_bitrate_estimator = remote_bitrate_estimator;
+    configuration.paced_sender = paced_sender;
+    */
+
+
     rtp_rtcp_module_ = webrtc::RtpRtcp::CreateRtpRtcp(configuration);
     rtcp_feedback_->SetModule( rtp_rtcp_module_);
-    
+
     rtp_rtcp_module_->SetRTCPStatus(webrtc::kRtcpCompound);
     rtp_rtcp_module_->SetKeyFrameRequestMethod(webrtc::kKeyFrameReqPliRtcp);
     rtp_rtcp_module_->SetSendingStatus(true);
@@ -91,6 +129,8 @@ SimpleVideoEngine::SimpleVideoEngine() {
     memcpy(video_codec.plName, "VP8", 4);
     rtp_rtcp_module_->RegisterSendPayload(video_codec);
     rtp_rtcp_module_->RegisterReceivePayload(video_codec);
+
+    rtp_header_parser_ =  webrtc::RtpHeaderParser::Create();
 }
 
 SimpleVideoEngine::~SimpleVideoEngine() {
@@ -98,8 +138,9 @@ SimpleVideoEngine::~SimpleVideoEngine() {
     encoding_thread_->Quit();
     delete encoding_thread_;
 
+    delete rtp_header_parser_;
     delete rtp_rtcp_module_; 
-    delete rtcp_feedback_;  
+    delete rtcp_feedback_;
 }
 
 void SimpleVideoEngine::OnMessage(talk_base::Message* msg) {
@@ -129,13 +170,25 @@ int SimpleVideoEngine::SendRTCPPacket(int channel, const void *data, int len) {
     return len;
 }
 
+  // Implements RtpData.
+int32_t SimpleVideoEngine::OnReceivedPayloadData(
+        const uint8_t* payload_data,
+        const uint16_t payload_size,
+        const webrtc::WebRtcRTPHeader* rtp_header) {
+
+    return 0; 
+}
+
+
 bool SimpleVideoEngine::InsertRtcpPackage(unsigned char* data, unsigned int len) {
-    //unsigned int ssrc;
-    //GetRtpSsrc(data,len,&ssrc);
-    rtp_rtcp_module_->IncomingPacket(data, len);
+    
+
     rtp_rtcp_module_->Process();
     return true;
 }
+
+
+
 
 //
 //
@@ -355,25 +408,6 @@ void SimpleVideoMediaChannel::OnSendPacket(SimpleVideoEngine *eng, const void *d
     SetRtpSsrc(buf, len, target_ssrc_);
     talk_base::Buffer new_packet((const void*)buf, len, 2048);
     network_interface()->SendPacket(&new_packet);
-#else
-    //if ( data == NULL) {
-    if (0) {
-        static FILE *fp = NULL;
-        static unsigned short seq = 0;
-        static uint8 buf[2048];
-        if ( fp == NULL) {
-            fp = fopen("./vp8.rtp", "rb");
-        }
-        if ( feof(fp) ) {
-            fseek(fp, 0l, SEEK_SET);
-        }
-        fread(buf, 1, 2048, fp);
-        size_t len = *(size_t *)&buf[2040];
-        SetRtpSsrc(buf, len, target_ssrc_);
-        SetRtpSeqNum(buf, len, seq++);
-        talk_base::Buffer new_packet((const void*)buf, len, 2048);
-        network_interface()->SendPacket(&new_packet);
-    }
 #endif
 }
 

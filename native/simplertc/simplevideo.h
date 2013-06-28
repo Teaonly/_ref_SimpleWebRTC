@@ -13,6 +13,7 @@
 namespace webrtc {
 class RtpRtcp;
 class WebRtcRTPHeader;
+class RtpHeaderParser;
 };    
 
 namespace cricket {
@@ -21,7 +22,10 @@ class VoiceMediaChannel;
 // internal help class
 class SimpleVideoRtcpFeedback;
 
-class SimpleVideoEngine : public sigslot::has_slots<>, public talk_base::MessageHandler, public webrtc::Transport {
+class SimpleVideoEngine : public sigslot::has_slots<>, 
+                          public talk_base::MessageHandler, 
+                          public webrtc::Transport,
+                          public webrtc::RtpData {
 public:
     SimpleVideoEngine();
     ~SimpleVideoEngine();    
@@ -42,9 +46,19 @@ protected:
     virtual int SendPacket(int channel, const void *data, int len) ;
     virtual int SendRTCPPacket(int channel, const void *data, int len) ;
 
+    //
+    // interface from webrtc::RtpData
+    //
+    virtual int32_t OnReceivedPayloadData(
+            const uint8_t* payload_data,
+            const uint16_t payload_size,
+            const webrtc::WebRtcRTPHeader* rtp_header);
+
 private:
     webrtc::RtpRtcp* rtp_rtcp_module_;
+
     SimpleVideoRtcpFeedback* rtcp_feedback_;
+    webrtc::RtpHeaderParser* rtp_header_parser_;
 
     talk_base::Thread* encoding_thread_;
     bool isSend_;

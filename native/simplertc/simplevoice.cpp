@@ -71,11 +71,11 @@ void SimpleVoiceEngine::StartSend() {
 }
 
 bool SimpleVoiceEngine::InsertRtpPackage(unsigned char *data, unsigned int len) {
-    rtp_rtcp_module_->IncomingPacket(data, len);
+    //rtp_rtcp_module_->IncomingPacket(data, len);
 }
 
 bool SimpleVoiceEngine::InsertRtcpPackage(unsigned char *data, unsigned int len) {
-    rtp_rtcp_module_->IncomingPacket(data, len);
+    //rtp_rtcp_module_->IncomingPacket(data, len);
     rtp_rtcp_module_->Process();    
 }
 

@@ -111,6 +111,7 @@ public:
     virtual bool SetPlayout(bool playout);
     // Starts or stops sending (and potentially capture) of local audio.
     virtual bool SetSend(cricket::SendFlags flag);
+    virtual bool SetRenderer(uint32, cricket::AudioRenderer*){return true;}
     virtual void OnReadyToSend(bool flag);
     
     // stream create and removed

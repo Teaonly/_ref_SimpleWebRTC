@@ -72,6 +72,7 @@ RtcStream::RtcStream(const std::string& id,
     
     connection_ = factory_->CreatePeerConnection(servers, 
                                                  NULL,
+                                                 NULL,
                                                  this); 
 }
 
