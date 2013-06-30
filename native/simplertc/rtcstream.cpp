@@ -5,6 +5,7 @@
 #include "talk/base/base64.h"
 #include "talk/base/json.h"
 #include "talk/app/webrtc/peerconnectioninterface.h"
+#include "simplerenderer.h"
 
 // Names used for a IceCandidate JSON object.
 const char kCandidateSdpMidName[] = "sdpMid";
@@ -62,10 +63,11 @@ protected:
 };
 
 RtcStream::RtcStream(const std::string& id,
-                     webrtc::RtcFactory* factory):
+                     webrtc::PeerConnectionFactoryInterface* factory):
                   id_(id), factory_(factory) {
+
+    renderer_ = NULL;
     webrtc::PeerConnectionInterface::IceServers servers;
-    
     webrtc::PeerConnectionInterface::IceServer server;
     server.uri = "stun:stun.l.google.com:19302";
     //servers.push_back(server);
@@ -82,7 +84,17 @@ RtcStream::~RtcStream() {
 
 // PeerConnectionObserver callbackes
 void RtcStream::OnAddStream(webrtc::MediaStreamInterface* stream) {
-    LOG(INFO) << __FILE__ << "@" << __LINE__ << "OnAddStream";
+    
+    //stream->AddRef();
+    webrtc::VideoTrackVector tracks = stream->GetVideoTracks();
+    // Only render the first track.
+    if (!tracks.empty()) {
+        webrtc::VideoTrackInterface* track = tracks[0];
+        if ( renderer_ != NULL) {
+            track->AddRenderer(renderer_);
+        }
+    }
+    //stream->Release();
 }
 
 void RtcStream::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
@@ -196,22 +208,29 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
         return;
 
     talk_base::scoped_refptr<webrtc::MediaStreamInterface> stream = 
-            factory_->CreateLocalMediaStream("mixer_stream");
+            factory_->CreateLocalMediaStream("simple_stream");
 
     if ( enableVoice) {
+#ifdef GOOGLE_ENGINE
+        talk_base::scoped_refptr<webrtc::AudioTrackInterface> audio_track(
+                factory_->CreateAudioTrack(
+                    "simple_voice", factory_->CreateAudioSource(NULL)));        
+#else
         talk_base::scoped_refptr<webrtc::AudioTrackInterface> audio_track( 
                 factory_->CreateAudioTrack(
                         "mixer_voice", 
                         NULL));
+#endif
         stream->AddTrack( audio_track);
     }
     if ( enableVideo) {
+//#ifndef GOOGLE_ENGINE
         talk_base::scoped_refptr<webrtc::VideoTrackInterface> video_track(
                 factory_->CreateVideoTrack(
                         "mixer_video",
                         NULL));
-
         stream->AddTrack( video_track);
+//#endif
     }
 
     connection_->AddStream(stream, NULL);    

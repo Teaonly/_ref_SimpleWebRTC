@@ -10,7 +10,7 @@ class Peer;
 
 class RtcStream;
 namespace webrtc {
-    class RtcFactory;
+    class PeerConnectionFactoryInterface;
 }
 
 class SimpleRTC : public sigslot::has_slots<>, public talk_base::MessageHandler {  
@@ -47,7 +47,7 @@ private:
     Peer *peer_;
 
     RtcStream* stream_;
-    talk_base::scoped_refptr<webrtc::RtcFactory> factory_;
+    talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory_;
 };
 
 #endif

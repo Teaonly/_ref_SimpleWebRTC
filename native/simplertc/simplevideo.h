@@ -9,6 +9,7 @@
 #include "talk/session/media/channel.h"
 #include "talk/base/sigslotrepeater.h"
 #include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp_defines.h"
+#include "webrtc/modules/utility/interface/process_thread.h"
 
 namespace webrtc {
 class RtpRtcp;
@@ -31,6 +32,7 @@ public:
     ~SimpleVideoEngine();    
     
     void StartSend(bool send);    
+    bool InsertRtpPackage(unsigned char *data, unsigned int len);
     bool InsertRtcpPackage(unsigned char *data, unsigned int len);
 
     sigslot::signal3<SimpleVideoEngine*, const void *, int> SignalSendPacket;
@@ -60,6 +62,7 @@ private:
     SimpleVideoRtcpFeedback* rtcp_feedback_;
     webrtc::RtpHeaderParser* rtp_header_parser_;
 
+    webrtc::ProcessThread* module_process_thread_; 
     talk_base::Thread* encoding_thread_;
     bool isSend_;
 };
