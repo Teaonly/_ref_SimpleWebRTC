@@ -90,7 +90,7 @@ var pageOnline = {
         });
         $(".btn_call2").bind("click", function() {
             var uname = $(this).attr("user_name");
-            navigator.webkitGetUserMedia({audio:false, video:true}, function(stream) {
+            navigator.webkitGetUserMedia({audio:true, video:true}, function(stream) {
                 startCallWithoutMedia(uname, stream); 
             }, function() {
             }); 
@@ -185,9 +185,12 @@ var onMessage = function(remote, msg) {
                     myPeer.sendMessage(myConfig.remote, "call:ok"); 
                     myConfig.state = 2;
                     myConfig.stream = stream;
+                    //myConfig.remoteVideo.src = webkitURL.createObjectURL(stream); 
                     myRTC.initWithAnswer( myConfig.remote, myConfig.remoteVideo, stream);
+                    //myRTC.initWithCall( myConfig.remote, myConfig.remoteVideo, stream);
+                    
                     pageOnline.hide();
-                    pageRTC.show();                
+                    pageRTC.show(); 
                 }, function() {
                     myConfig.state = 0;
                     myPeer.sendMessage(myConfig.remote, "call:error");

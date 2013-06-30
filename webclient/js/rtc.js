@@ -13,6 +13,7 @@ var myRTC = {
         if ( msg.length === 3 && msg[0] === "rtc" && msg[1] === "desc" ) {
             var desc = Base64.decode( msg[2] );
             var remoteDesc = new SessionDescription(JSON.parse(desc));
+            console.log(remoteDesc);
             myRTC._peerConnection.setRemoteDescription( remoteDesc );  
             if ( myRTC._isCaller === false) {
                 myRTC._peerConnection.createAnswer( myRTC._onLocalDescription );
@@ -45,6 +46,7 @@ var myRTC = {
    // callbacks from PeerConnection and userMedia objects
     _onLocalDescription: function(desc) {
         myRTC._peerConnection.setLocalDescription(desc);
+        console.log(desc);
         var descJsonObj = JSON.stringify(desc);
         var descBE = Base64.encode (descJsonObj);
         myRTC.onMessageOut(myRTC._remote, "rtc:desc:" + descBE );
