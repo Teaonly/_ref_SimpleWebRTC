@@ -454,7 +454,6 @@ void SimpleVideoMediaChannel::OnSendRTCPPacket(SimpleVideoEngine *eng, const voi
     SetRtpSsrc(buf, len, target_ssrc_);
     talk_base::Buffer new_packet((const void*)&buf[4], len, 1024);
     network_interface()->SendRtcp(&new_packet);
-    std::cout << "Send out RTCP package" << std::endl;
 }
 
 }   // end of namespace 
