@@ -73,7 +73,10 @@ void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &rol
 #endif
         stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
         stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);        
+
+#ifdef GOOGLE_ENGINE        
         signal_thread_->PostDelayed(1000, this, MSG_RTC_CALL);
+#endif        
     }
 }
 
@@ -82,16 +85,21 @@ void SimpleRTC::onRemoteOffline(const std::string &remote) {
 }
 
 void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std::string>& msgBody) {
-    if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
+    if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "media" ) {
+        answerCall();        
+    } else if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
         stream_->SetupLocalStream(true, true);
         stream_->CreateOfferDescription();    
         //stream_->CreateAnswerDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         stream_->SetRemoteDescription( msgBody[2] );
-        //stream_->CreateAnswerDescription();    
+#ifndef GOOGLE_ENGINE        
+        stream_->SetupLocalStream(true, true);
+        stream_->CreateAnswerDescription();    
+#endif
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "cand" ) {
         stream_->SetRemoteCandidate(msgBody[2]);
-    }
+    }        
 }
 
 void SimpleRTC::onPrintString(const std::string& msg) {
@@ -121,4 +129,10 @@ void SimpleRTC::makeCall() {
     peer_->SendMessage( stream_->id(), msgBody);
 }
 
+void SimpleRTC::answerCall() {
+    std::vector<std::string> msgBody;
+    msgBody.push_back( "call");
+    msgBody.push_back( "ok");
+    peer_->SendMessage( stream_->id(), msgBody);
+}
 

@@ -37,6 +37,7 @@ private:
     void OnLocalDescription(RtcStream* stream, const std::string& desc);
     void OnLocalCandidate(RtcStream* stream, const std::string& cand);
     void makeCall(); 
+    void answerCall();
 
 private:
     // thread resource

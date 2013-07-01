@@ -439,10 +439,11 @@ bool SimpleVideoMediaChannel::GetOptions(VideoOptions* options) const {
 }
 
 void SimpleVideoMediaChannel::OnSendPacket(SimpleVideoEngine *eng, const void *data, int len) {
+    /*
     if ( (rand() % 100) == 1) {
         std::cout << "KAKAK" << std::endl;
     }
-
+    */
     static uint8 buf[2048];
     memcpy(buf, data, len);
     SetRtpSsrc(buf, len, target_ssrc_);
