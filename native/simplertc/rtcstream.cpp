@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "talk/app/webrtc/videosourceinterface.h"
 #include "rtcstream.h"
 #include "talk/base/base64.h"
 #include "talk/base/json.h"
@@ -203,6 +204,28 @@ void RtcStream::SetRemoteDescription(const std::string& msg) {
             RtcStreamSetSessionDescriptionObserver::Create(), session_description);
 }
 
+static cricket::VideoCapturer* OpenVideoCaptureDevice() {
+  talk_base::scoped_ptr<cricket::DeviceManagerInterface> dev_manager(
+      cricket::DeviceManagerFactory::Create());
+  if (!dev_manager->Init()) {
+    LOG(LS_ERROR) << "Can't create device manager";
+    return NULL;
+  }
+  std::vector<cricket::Device> devs;
+  if (!dev_manager->GetVideoCaptureDevices(&devs)) {
+    LOG(LS_ERROR) << "Can't enumerate video devices";
+    return NULL;
+  }
+  std::vector<cricket::Device>::iterator dev_it = devs.begin();
+  cricket::VideoCapturer* capturer = NULL;
+  for (; dev_it != devs.end(); ++dev_it) {
+    capturer = dev_manager->CreateVideoCapturer(*dev_it);
+    if (capturer != NULL)
+      break;
+  }
+  return capturer;
+}
+
 void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
     if ( enableVoice == false && enableVideo == false)
         return;
@@ -224,13 +247,20 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
         stream->AddTrack( audio_track);
     }
     if ( enableVideo) {
-//#ifndef GOOGLE_ENGINE
+#ifdef GOOGLE_ENGINE
+        talk_base::scoped_refptr<webrtc::VideoTrackInterface> video_track(
+                factory_->CreateVideoTrack(
+                    "simplertc",
+                    factory_->CreateVideoSource(OpenVideoCaptureDevice(),
+                        NULL)));
+        stream->AddTrack( video_track);
+#else        
         talk_base::scoped_refptr<webrtc::VideoTrackInterface> video_track(
                 factory_->CreateVideoTrack(
                         "mixer_video",
                         NULL));
         stream->AddTrack( video_track);
-//#endif
+#endif
     }
 
     connection_->AddStream(stream, NULL);    

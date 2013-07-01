@@ -61,7 +61,7 @@ void SimpleRTC::onOffline() {
 }
 
 void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &role) {
-    if ( stream_ == NULL && factory_.get() == NULL) {
+    if ( stream_ == NULL && factory_.get() == NULL ) {
 #ifdef GOOGLE_ENGINE 
         factory_ = webrtc::CreatePeerConnectionFactory(); 
         stream_ = new RtcStream(remote, factory_);
