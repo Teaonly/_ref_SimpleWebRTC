@@ -3,6 +3,7 @@
 #include "simplemedia.h"
 #include "simplevoice.h"
 #include "simplevideo.h"
+#include "talk/media/base/constants.h"
 
 namespace cricket {
 
@@ -16,6 +17,16 @@ SimpleMediaEngine::SimpleMediaEngine(talk_base::Thread* worker_thread)
     codec.height = 480;
     codec.framerate = 30;     
     codec.preference = 0;
+   
+    const FeedbackParam kFir(kRtcpFbParamCcm, kRtcpFbCcmParamFir);
+    codec.AddFeedbackParam(kFir);
+    const FeedbackParam kNack(kRtcpFbParamNack, kParamValueEmpty);
+    codec.AddFeedbackParam(kNack);
+    /*
+    const FeedbackParam kRemb(kRtcpFbParamRemb, kParamValueEmpty);
+    codec->AddFeedbackParam(kRemb);  
+    */
+
     video_codecs_.push_back(codec); 
 
     cricket::AudioCodec isac(103, "ISAC", 16000, 32000, 1, 1);

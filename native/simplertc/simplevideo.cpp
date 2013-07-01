@@ -307,7 +307,7 @@ bool SimpleVideoMediaChannel::RequestIntraFrame() {
 }
 
 void SimpleVideoMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
-    if (1) {
+    if (0) {
         static uint8 buf[2048]; 
         const void* data = packet->data();
         size_t len = packet->length();
@@ -317,9 +317,6 @@ void SimpleVideoMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
     } 
     
     if (1) {
-        if ( (random() % 100) == 2) {
-            return;
-        }
         //  This is a simple loopback
         static uint8 buf[2048]; 
         const void* data = packet->data();
