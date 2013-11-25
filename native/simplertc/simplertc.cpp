@@ -3,7 +3,6 @@
 #include "simplertc.h"
 #include "peer.h"
 #include "rtcstream.h"
-#include "simplerenderer.h"
 
 enum {
     MSG_RTC_CALL,
@@ -65,8 +64,7 @@ void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &rol
 #ifdef GOOGLE_ENGINE 
         factory_ = webrtc::CreatePeerConnectionFactory(); 
         stream_ = new RtcStream(remote, factory_);
-        SimpleVideoRenderer* r = new SimpleVideoRenderer();
-        stream_->SetRenderer(r);
+        //stream_->SetRenderer(r);
 #else
         factory_ = webrtc::CreateRtcFactory();
         stream_ = new RtcStream(remote, factory_);

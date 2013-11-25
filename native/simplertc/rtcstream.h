@@ -7,7 +7,6 @@
 #include "rtcfactory.h"
 
 class Peer;
-class SimpleVideoRenderer;
 
 class RtcStream : public webrtc::PeerConnectionObserver, 
                  public sigslot::has_slots<> {
@@ -16,9 +15,6 @@ public:
     virtual ~RtcStream();
     
     inline std::string id() { return id_; }
-    virtual void SetRenderer(SimpleVideoRenderer* r) {
-        renderer_ = r;
-    }
     virtual void CreateOfferDescription();
     virtual void CreateAnswerDescription();
     virtual void SetRemoteCandidate(const std::string& msg);
@@ -58,7 +54,6 @@ protected:
     std::string id_;
     webrtc::PeerConnectionFactoryInterface* factory_;
     talk_base::scoped_refptr<webrtc::PeerConnectionInterface> connection_;
-    SimpleVideoRenderer* renderer_;
 };
 
 #endif
