@@ -61,20 +61,13 @@ void SimpleRTC::onOffline() {
 
 void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &role) {
     if ( stream_ == NULL && factory_.get() == NULL ) {
-#ifdef GOOGLE_ENGINE 
         factory_ = webrtc::CreatePeerConnectionFactory(); 
+        
         stream_ = new RtcStream(remote, factory_);
-        //stream_->SetRenderer(r);
-#else
-        factory_ = webrtc::CreateRtcFactory();
-        stream_ = new RtcStream(remote, factory_);
-#endif
         stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
         stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);        
 
-#ifdef GOOGLE_ENGINE        
         signal_thread_->PostDelayed(1000, this, MSG_RTC_CALL);
-#endif        
     }
 }
 
@@ -91,10 +84,6 @@ void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std
         //stream_->CreateAnswerDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         stream_->SetRemoteDescription( msgBody[2] );
-#ifndef GOOGLE_ENGINE        
-        stream_->SetupLocalStream(true, true);
-        stream_->CreateAnswerDescription();    
-#endif
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "cand" ) {
         stream_->SetRemoteCandidate(msgBody[2]);
     }        

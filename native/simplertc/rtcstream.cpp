@@ -36,6 +36,7 @@ public:
 protected:
     RtcStreamSetSessionDescriptionObserver() {}
     ~RtcStreamSetSessionDescriptionObserver() {}
+
 };
 
 class RtcStreamCreateSessionDescriptionObserver
@@ -64,12 +65,13 @@ protected:
 
 RtcStream::RtcStream(const std::string& id,
                      webrtc::PeerConnectionFactoryInterface* factory):
-                  id_(id), factory_(factory) {
+                  id_(id), factory_(factory),
+                  videoRenderer_(0), audioSource_(0), videoSource_(0) {
 
     webrtc::PeerConnectionInterface::IceServers servers;
     webrtc::PeerConnectionInterface::IceServer server;
     server.uri = "stun:stun.l.google.com:19302";
-    //servers.push_back(server);
+    servers.push_back(server);
     
     connection_ = factory_->CreatePeerConnection(servers, 
                                                  NULL,
@@ -84,18 +86,16 @@ RtcStream::~RtcStream() {
 // PeerConnectionObserver callbackes
 void RtcStream::OnAddStream(webrtc::MediaStreamInterface* stream) {
     
-    //stream->AddRef();
+    stream->AddRef();
     webrtc::VideoTrackVector tracks = stream->GetVideoTracks();
     // Only render the first track.
     if (!tracks.empty()) {
         webrtc::VideoTrackInterface* track = tracks[0];
-        /*
-        if ( renderer_ != NULL) {
-            track->AddRenderer(renderer_);
+        if ( videoRenderer_ != NULL) {
+            track->AddRenderer(videoRenderer_);
         }
-        */
     }
-    //stream->Release();
+    stream->Release();
 }
 
 void RtcStream::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
@@ -236,16 +236,14 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
     if ( enableVoice) {
         talk_base::scoped_refptr<webrtc::AudioTrackInterface> audio_track(
                 factory_->CreateAudioTrack(
-                    "simple_voice", factory_->CreateAudioSource(NULL)));        
-        stream->AddTrack( audio_track);
+                    "simple_voice", audioSource_));        
+        stream->AddTrack(audio_track);
     }
     if ( enableVideo) {
         talk_base::scoped_refptr<webrtc::VideoTrackInterface> video_track(
                 factory_->CreateVideoTrack(
-                    "simplertc",
-                    factory_->CreateVideoSource(OpenVideoCaptureDevice(),
-                        NULL)));
-        stream->AddTrack( video_track);
+                    "simplertc", videoSource_));
+        stream->AddTrack(video_track);
     }
 
     connection_->AddStream(stream, NULL);    
