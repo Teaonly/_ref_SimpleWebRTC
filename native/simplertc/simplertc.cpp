@@ -67,7 +67,7 @@ void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &rol
         stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
         stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);        
 
-        signal_thread_->PostDelayed(1000, this, MSG_RTC_CALL);
+        //signal_thread_->PostDelayed(1000, this, MSG_RTC_CALL);
     }
 }
 
@@ -79,9 +79,9 @@ void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std
     if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "media" ) {
         answerCall();        
     } else if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
-        stream_->SetupLocalStream(true, true);
-        stream_->CreateOfferDescription();    
-        //stream_->CreateAnswerDescription();    
+        stream_->SetupLocalStream(true, false);
+        //stream_->CreateOfferDescription();    
+        stream_->CreateAnswerDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         stream_->SetRemoteDescription( msgBody[2] );
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "cand" ) {

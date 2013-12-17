@@ -233,13 +233,13 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
     talk_base::scoped_refptr<webrtc::MediaStreamInterface> stream = 
             factory_->CreateLocalMediaStream("simple_stream");
 
-    if ( enableVoice) {
+    if ( enableVoice && audioSource_ != NULL) {
         talk_base::scoped_refptr<webrtc::AudioTrackInterface> audio_track(
                 factory_->CreateAudioTrack(
                     "simple_voice", audioSource_));        
         stream->AddTrack(audio_track);
     }
-    if ( enableVideo) {
+    if ( enableVideo && videoSource_ != NULL) {
         talk_base::scoped_refptr<webrtc::VideoTrackInterface> video_track(
                 factory_->CreateVideoTrack(
                     "simplertc", videoSource_));
