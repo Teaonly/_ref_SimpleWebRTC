@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     
-    SimpleRTC *camera = new SimpleRTC( argv[3] );
+    SimpleRTC *camera = new SimpleRTC( argv[3] , false);
     camera->Login(argv[1], atoi(argv[2]) );
     camera->Run();
     

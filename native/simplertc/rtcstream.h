@@ -14,7 +14,10 @@ class Peer;
 class RtcStream : public webrtc::PeerConnectionObserver, 
                  public sigslot::has_slots<> {
 public:
-    RtcStream(const std::string& id, webrtc::PeerConnectionFactoryInterface* factory);            
+    RtcStream(const std::string& id, webrtc::PeerConnectionFactoryInterface* factory, 
+            webrtc::VideoSourceInterface* vs, 
+            webrtc::VideoRendererInterface* vr,
+            webrtc::AudioSourceInterface* as);
     virtual ~RtcStream();
     
     inline std::string id() { return id_; }

@@ -7,6 +7,8 @@
 #include "talk/base/messagequeue.h"
 
 class Peer;
+class SimpleCapturer;
+class SimpleVideoRenderer;
 
 class RtcStream;
 namespace webrtc {
@@ -15,13 +17,12 @@ namespace webrtc {
 
 class SimpleRTC : public sigslot::has_slots<>, public talk_base::MessageHandler {  
 public:
-    SimpleRTC(const std::string& myName);
+    SimpleRTC(const std::string& myName, bool isCaller);
     ~SimpleRTC();
     
     virtual void OnMessage(talk_base::Message *msg);
     void Login(const std::string &server, 
                const unsigned short port);
-    
     void Run();
 
 protected:
@@ -44,9 +45,12 @@ private:
     talk_base::Thread *signal_thread_;
 
     // info resource
-    std::string my_name_;
+    std::string myName_;
+    bool isCaller_;
     Peer *peer_;
 
+    SimpleCapturer* capturer_;
+    SimpleVideoRenderer* renderer_;
     RtcStream* stream_;
     talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory_;
 };

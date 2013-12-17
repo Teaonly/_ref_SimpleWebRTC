@@ -90,7 +90,7 @@ var pageOnline = {
         });
         $(".btn_call2").bind("click", function() {
             var uname = $(this).attr("user_name");
-            navigator.webkitGetUserMedia({audio:true, video:true}, function(stream) {
+            navigator.webkitGetUserMedia({audio:false, video:true}, function(stream) {
                 startCallWithoutMedia(uname, stream); 
             }, function() {
             }); 

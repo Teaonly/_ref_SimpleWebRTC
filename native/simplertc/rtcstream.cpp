@@ -63,10 +63,12 @@ protected:
     ~RtcStreamCreateSessionDescriptionObserver() {}
 };
 
-RtcStream::RtcStream(const std::string& id,
-                     webrtc::PeerConnectionFactoryInterface* factory):
-                  id_(id), factory_(factory),
-                  videoRenderer_(0), audioSource_(0), videoSource_(0) {
+RtcStream::RtcStream(const std::string& id, webrtc::PeerConnectionFactoryInterface* factory, 
+            webrtc::VideoSourceInterface* vs, 
+            webrtc::VideoRendererInterface* vr,
+            webrtc::AudioSourceInterface* as):
+            id_(id), factory_(factory),
+            videoRenderer_(vr), audioSource_(as), videoSource_(vs) {
 
     webrtc::PeerConnectionInterface::IceServers servers;
     webrtc::PeerConnectionInterface::IceServer server;
