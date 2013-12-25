@@ -8,23 +8,26 @@
 #include "talk/base/stringutils.h"
 #include "talk/media/base/videocapturer.h"
 
-
+class CapturerThread;
 // Simulated video capturer that periodically reads frames from a file.
 class SimpleCapturer : public cricket::VideoCapturer {
- public:
-  SimpleCapturer();
-  virtual ~SimpleCapturer();
+public:
+    SimpleCapturer();
+    virtual ~SimpleCapturer();
 
-  // Override virtual methods of parent class VideoCapturer.
-  virtual cricket::CaptureState Start(const cricket::VideoFormat& capture_format);
-  virtual void Stop();
-  virtual bool IsRunning();
-  virtual bool IsScreencast() const { return false; }
+    void onCaptureTimer();
 
- protected:
-  virtual bool GetPreferredFourccs(std::vector<uint32>* fourccs);
+    // Override virtual methods of parent class VideoCapturer.
+    virtual cricket::CaptureState Start(const cricket::VideoFormat& capture_format);
+    virtual void Stop();
+    virtual bool IsRunning();
+    virtual bool IsScreencast() const { return false; }
+    virtual bool GetPreferredFourccs(std::vector<uint32>* fourccs);
 
-  DISALLOW_COPY_AND_ASSIGN(SimpleCapturer);
+private:
+    CapturerThread* capturerThread_;
+
+    DISALLOW_COPY_AND_ASSIGN(SimpleCapturer);
 };
 
 #endif
