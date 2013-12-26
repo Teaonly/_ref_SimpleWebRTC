@@ -19,6 +19,7 @@ SimpleRTC::SimpleRTC(const std::string& myName, bool isCaller) {
     signal_thread_ = new talk_base::Thread();
     signal_thread_->Start();
     
+    capturer_ = new SimpleCapturer();    
     renderer_ = new SimpleVideoRenderer();
     factory_ = webrtc::CreatePeerConnectionFactory(); 
     
@@ -67,7 +68,7 @@ void SimpleRTC::onOffline() {
 
 void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &role) {
     if ( stream_ == NULL && isCaller_ == true ) {
-        stream_ = new RtcStream(remote, factory_, NULL, renderer_, NULL);
+        stream_ = new RtcStream(remote, factory_, capturer_, renderer_, NULL);
         stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
         stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);        
 
@@ -82,20 +83,21 @@ void SimpleRTC::onRemoteOffline(const std::string &remote) {
 void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std::string>& msgBody) {
     if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "media" ) {
         if ( stream_ == NULL && isCaller_ == false) {
-            stream_ = new RtcStream(remote, factory_, NULL, renderer_, NULL);
+            
+            stream_ = new RtcStream(remote, factory_, capturer_, renderer_, NULL);
             stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
             stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);        
 
-            answerCall();        
+            answerCall(); 
         }
     } else if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
-        stream_->SetupLocalStream(true, false);
+        stream_->SetupLocalStream(false, true);
         stream_->CreateOfferDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         if ( stream_ != NULL ) {
             stream_->SetRemoteDescription( msgBody[2] );
             if ( isCaller_ == false) {
-                stream_->SetupLocalStream(false, false);
+                stream_->SetupLocalStream(false, true);
                 stream_->CreateAnswerDescription(); 
             }
         } 

@@ -15,7 +15,7 @@ public:
     SimpleCapturer();
     virtual ~SimpleCapturer();
 
-    void onCaptureTimer();
+    void onCaptureTimer(int64 ts);
 
     // Override virtual methods of parent class VideoCapturer.
     virtual cricket::CaptureState Start(const cricket::VideoFormat& capture_format);
@@ -25,8 +25,9 @@ public:
     virtual bool GetPreferredFourccs(std::vector<uint32>* fourccs);
 
 private:
+    
+    cricket::VideoFormat myFormat_;     
     CapturerThread* capturerThread_;
-
     DISALLOW_COPY_AND_ASSIGN(SimpleCapturer);
 };
 
