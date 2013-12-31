@@ -19,10 +19,12 @@ SimpleRTC::SimpleRTC(const std::string& myName, bool isCaller) {
     signal_thread_ = new talk_base::Thread();
     signal_thread_->Start();
     
-    capturer_ = new SimpleCapturer();    
-    renderer_ = new SimpleVideoRenderer();
     factory_ = webrtc::CreatePeerConnectionFactory(); 
-    
+
+    renderer_ = new SimpleVideoRenderer();
+
+    capturer_ = new SimpleCapturer();    
+    capturer_->set_enable_camera_list(true);
 }
 
 SimpleRTC::~SimpleRTC() {

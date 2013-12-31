@@ -63,7 +63,8 @@ protected:
     ~RtcStreamCreateSessionDescriptionObserver() {}
 };
 
-RtcStream::RtcStream(const std::string& id, webrtc::PeerConnectionFactoryInterface* factory, 
+RtcStream::RtcStream(const std::string& id, 
+            webrtc::PeerConnectionFactoryInterface* factory, 
             cricket::VideoCapturer* vc, 
             webrtc::VideoRendererInterface* vr,
             webrtc::AudioSourceInterface* as):
@@ -131,7 +132,7 @@ void RtcStream::OnLocalDescription(webrtc::SessionDescriptionInterface* desc) {
         std::string sdp;
         desc->ToString(&sdp);
         jmessage[kSessionDescriptionSdpName] = sdp;
-        
+
         std::string encodedDesc = talk_base::Base64::Encode( writer.write(jmessage) );
         SignalSessionDescription(this, encodedDesc); 
     } else {
@@ -241,14 +242,14 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
                     "simple_voice", audioSource_));        
         stream->AddTrack(audio_track);
     }
-    if ( enableVideo && videoCapturer_ != NULL) {
 
+    //videoCapturer_ = OpenVideoCaptureDevice();
+    if ( enableVideo && videoCapturer_ != NULL) {
         talk_base::scoped_refptr<webrtc::VideoSourceInterface> video_source(
             factory_->CreateVideoSource(videoCapturer_, NULL));
- 
         talk_base::scoped_refptr<webrtc::VideoTrackInterface> video_track(
                 factory_->CreateVideoTrack(
-                    "simplertc", video_source));
+                    "simple_video", video_source));
         stream->AddTrack(video_track);
     }
 

@@ -40,6 +40,8 @@ protected:
     
     void OnMessage(talk_base::Message* msg) {
         switch(msg->message_id) {
+        case MSG_CAPTURE_TIMER:
+            thread_->PostDelayed(100, this, MSG_CAPTURE_TIMER);
             capturer_->onCaptureTimer(time_stamp_);
             time_stamp_ += 33333333;  // 30 fps
         }
@@ -55,16 +57,15 @@ private:
 
 SimpleCapturer::SimpleCapturer() {
     std::vector<cricket::VideoFormat> supported;
-    supported.push_back(myFormat_);
-
-    SetId("Simple");
-    SetSupportedFormats(supported);
-    capturerThread_ = new CapturerThread(this);
-
     cricket::VideoFormat format(640, 480, 
             FPS_TO_INTERVAL(15), 
             cricket::FOURCC_I420); 
     myFormat_ = format;
+    supported.push_back(myFormat_);
+
+    SetId("SimpleVideo");
+    SetSupportedFormats(supported);
+    capturerThread_ = new CapturerThread(this);
 }
 
 SimpleCapturer::~SimpleCapturer() {
@@ -72,13 +73,14 @@ SimpleCapturer::~SimpleCapturer() {
 }
 
 cricket::CaptureState SimpleCapturer::Start(const cricket::VideoFormat& capture_format) {
-    std::cout << "Begin Start Capture....." << std::endl;
+    std::cout << ">>>>>>>>>>>> Begin Start Capture....." << std::endl;
 
     capturerThread_->Start();    
     return cricket::CS_RUNNING;
 }
 
 void SimpleCapturer::Stop() {
+    std::cout << "Called with Stop " << std::endl;
     capturerThread_->Stop();  
     SetCaptureFormat(NULL);    
 }
@@ -88,10 +90,11 @@ bool SimpleCapturer::IsRunning() {
 }
 
 bool SimpleCapturer::GetPreferredFourccs(std::vector<uint32>* fourccs) {
+    std::cout << ">>>>>>>>>>>> Called with GetPreferredFourccs " << std::endl;
+    
     if (!fourccs) {
         return false;
     }
-    std::cout << "Called with GetPreferredFourccs " << std::endl;
     fourccs->push_back( cricket::FOURCC_I420 );  
     return true;  
 }
@@ -105,6 +108,8 @@ void SimpleCapturer::onCaptureTimer(int64 ts) {
     frame.data_size = (myFormat_.width * myFormat_.height) + (myFormat_.width * myFormat_.height) / 2;
     frame.elapsed_time = ts;
     frame.time_stamp = ts;
+
+    std::cout << "KAKKAKA" << std::endl;
 
     // TODO data
     SignalFrameCaptured(this, &frame); 
