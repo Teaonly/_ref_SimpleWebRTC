@@ -25,7 +25,7 @@ public:
     virtual bool GetPreferredFourccs(std::vector<uint32>* fourccs);
 
 private:
-    
+    unsigned char *yuvBuffer_;
     cricket::VideoFormat myFormat_;     
     CapturerThread* capturerThread_;
     DISALLOW_COPY_AND_ASSIGN(SimpleCapturer);

@@ -41,9 +41,9 @@ protected:
     void OnMessage(talk_base::Message* msg) {
         switch(msg->message_id) {
         case MSG_CAPTURE_TIMER:
-            thread_->PostDelayed(100, this, MSG_CAPTURE_TIMER);
+            thread_->PostDelayed(66, this, MSG_CAPTURE_TIMER);
             capturer_->onCaptureTimer(time_stamp_);
-            time_stamp_ += 33333333;  // 30 fps
+            time_stamp_ += 66666666;  // 15 fps
         }
     }
     
@@ -57,11 +57,13 @@ private:
 
 SimpleCapturer::SimpleCapturer() {
     std::vector<cricket::VideoFormat> supported;
-    cricket::VideoFormat format(640, 480, 
+    cricket::VideoFormat format(704, 576, 
             FPS_TO_INTERVAL(15), 
             cricket::FOURCC_I420); 
     myFormat_ = format;
     supported.push_back(myFormat_);
+
+    yuvBuffer_ = (unsigned char *)malloc(704 * 576 * 2);
 
     SetId("SimpleVideo");
     SetSupportedFormats(supported);
@@ -69,7 +71,7 @@ SimpleCapturer::SimpleCapturer() {
 }
 
 SimpleCapturer::~SimpleCapturer() {
-
+    free(yuvBuffer_);
 }
 
 cricket::CaptureState SimpleCapturer::Start(const cricket::VideoFormat& capture_format) {
@@ -108,10 +110,19 @@ void SimpleCapturer::onCaptureTimer(int64 ts) {
     frame.data_size = (myFormat_.width * myFormat_.height) + (myFormat_.width * myFormat_.height) / 2;
     frame.elapsed_time = ts;
     frame.time_stamp = ts;
-
-    std::cout << "KAKKAKA" << std::endl;
-
-    // TODO data
+    frame.data = yuvBuffer_;
+    
+    {
+        static FILE* fp = NULL;
+        if (fp == NULL) {
+            fp = fopen("./4cif.yuv", "rb");
+        }
+        if ( feof(fp)) {
+            fseek(fp, 0l, SEEK_SET);    
+        }
+        fread(yuvBuffer_, 704*576*1.5, 1, fp);
+    }
+     
     SignalFrameCaptured(this, &frame); 
 }
 
