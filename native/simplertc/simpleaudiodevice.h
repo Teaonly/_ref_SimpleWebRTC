@@ -12,9 +12,12 @@ public:
     SimpleAudioDevice();
     virtual ~SimpleAudioDevice();
 
-public: // Interface
     void Test();
 
+public: // Interface
+    virtual int32_t AddRef() { return 1; }
+    virtual int32_t Release() { return 0; }
+ 
 public: // RefCountedModule
     virtual int32_t TimeUntilNextProcess() OVERRIDE;
     virtual int32_t Process() OVERRIDE;
@@ -79,6 +82,7 @@ public: // AudioDeviceModule
         return 0;
     }
     virtual int32_t RecordingSampleRate(uint32_t* samplesPerSec) const {
+        *samplesPerSec = 8000;
         return 0;
     }
     virtual int32_t SetPlayoutSampleRate(const uint32_t samplesPerSec) {
@@ -117,22 +121,10 @@ public: // AudioDeviceModule
         return 0; 
     }
     virtual int32_t SetSpeakerVolume(uint32_t volume) { return 0; }
-    virtual int32_t SpeakerVolume(uint32_t* volume) const { 
-        *volume = 16; 
-        return -1;
-    }
-    virtual int32_t MaxSpeakerVolume(uint32_t* maxVolume) const { 
-        *maxVolume = 32;
-        return 0; 
-    }
-    virtual int32_t MinSpeakerVolume(uint32_t* minVolume) const { 
-        *minVolume = 0;
-        return 0; 
-    }
-    virtual int32_t SpeakerVolumeStepSize(uint16_t* stepSize) const { 
-        *stepSize = 1; 
-        return 0; 
-    }
+    virtual int32_t SpeakerVolume(uint32_t* volume) const { return 0; } 
+    virtual int32_t MaxSpeakerVolume(uint32_t* maxVolume) const { return 0; }
+    virtual int32_t MinSpeakerVolume(uint32_t* minVolume) const { return 0; }
+    virtual int32_t SpeakerVolumeStepSize(uint16_t* stepSize) const { return 0; } 
 
     // Microphone volume controls
     virtual int32_t MicrophoneVolumeIsAvailable(bool* available) { 
@@ -171,7 +163,7 @@ public: // AudioDeviceModule
     
     // Stereo support
     virtual int32_t StereoPlayoutIsAvailable(bool* available) const {
-        *available = false;
+        *available = true;
         return 0;
     }
     virtual int32_t SetStereoPlayout(bool enable) { 

@@ -13,6 +13,7 @@ class SimpleVideoRenderer;
 class RtcStream;
 namespace webrtc {
     class PeerConnectionFactoryInterface;
+    class SimpleAudioDevice; 
 }
 
 class SimpleRTC : public sigslot::has_slots<>, public talk_base::MessageHandler {  
@@ -49,6 +50,7 @@ private:
     bool isCaller_;
     Peer *peer_;
 
+    webrtc::SimpleAudioDevice* adm_;
     SimpleCapturer* capturer_;
     SimpleVideoRenderer* renderer_;
     RtcStream* stream_;
