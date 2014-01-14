@@ -120,7 +120,10 @@ net.createServer(function(sock) {
     sock.setTimeout(0);
     sock.setEncoding("utf8");
     var peer = PeerServer.onAccept(sock);
-
+    
+    sock.addListener("error", function(){
+        PeerServer.onClose(peer);    
+    });
     sock.addListener("close", function(){
         PeerServer.onClose(peer);
     });

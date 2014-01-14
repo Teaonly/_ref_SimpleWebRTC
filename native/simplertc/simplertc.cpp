@@ -5,6 +5,8 @@
 #include "rtcstream.h"
 #include "simplerenderer.h"
 #include "simplecapturer.h"
+#include "simpleaudiodevice.h"
+
 
 enum {
     MSG_RTC_CALL,
@@ -18,8 +20,9 @@ SimpleRTC::SimpleRTC(const std::string& myName, bool isCaller) {
 
     signal_thread_ = new talk_base::Thread();
     signal_thread_->Start();
-    
-    factory_ = webrtc::CreatePeerConnectionFactory(); 
+
+    webrtc::SimpleAudioDevice* adm = new webrtc::SimpleAudioDevice();
+    factory_ = webrtc::CreatePeerConnectionFactory(NULL, NULL, adm, NULL, NULL); 
 
     renderer_ = new SimpleVideoRenderer();
 
@@ -70,7 +73,7 @@ void SimpleRTC::onOffline() {
 
 void SimpleRTC::onRemoteOnline(const std::string &remote, const std::string &role) {
     if ( stream_ == NULL && isCaller_ == true ) {
-        stream_ = new RtcStream(remote, factory_, capturer_, renderer_, NULL);
+        stream_ = new RtcStream(remote, factory_, capturer_, renderer_);
         stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
         stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);        
 
@@ -86,7 +89,7 @@ void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std
     if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "media" ) {
         if ( stream_ == NULL && isCaller_ == false) {
             
-            stream_ = new RtcStream(remote, factory_, capturer_, renderer_, NULL);
+            stream_ = new RtcStream(remote, factory_, capturer_, renderer_);
             stream_->SignalSessionDescription.connect(this, &SimpleRTC::OnLocalDescription);
             stream_->SignalIceCandidate.connect(this, &SimpleRTC::OnLocalCandidate);        
 

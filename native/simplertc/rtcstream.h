@@ -16,8 +16,7 @@ class RtcStream : public webrtc::PeerConnectionObserver,
 public:
     RtcStream(const std::string& id, webrtc::PeerConnectionFactoryInterface* factory, 
             cricket::VideoCapturer* vc, 
-            webrtc::VideoRendererInterface* vr,
-            webrtc::AudioSourceInterface* as);
+            webrtc::VideoRendererInterface* vr);
     virtual ~RtcStream();
     
     inline std::string id() { return id_; }
@@ -60,15 +59,8 @@ protected:
 
     talk_base::scoped_refptr<webrtc::PeerConnectionInterface> connection_;
     
-    /*
-    talk_base::scoped_refptr<webrtc::VideoRendererInterface*> videoRenderer_;
-    talk_base::scoped_refptr<webrtc::AudioSourceInterface*> audioSource_;
-    talk_base::scoped_refptr<webrtc::VideoSourceInterface*> videoSource_;
-    */
-    
-    webrtc::VideoRendererInterface* videoRenderer_;
-    webrtc::AudioSourceInterface* audioSource_;
     cricket::VideoCapturer* videoCapturer_;
+    webrtc::VideoRendererInterface* videoRenderer_;
 };
 
 #endif

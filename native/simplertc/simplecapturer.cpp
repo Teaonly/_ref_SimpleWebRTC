@@ -41,7 +41,7 @@ protected:
     void OnMessage(talk_base::Message* msg) {
         switch(msg->message_id) {
         case MSG_CAPTURE_TIMER:
-            thread_->PostDelayed(66, this, MSG_CAPTURE_TIMER);
+            thread_->PostDelayed(132, this, MSG_CAPTURE_TIMER);
             capturer_->onCaptureTimer(time_stamp_);
             time_stamp_ += 66666666;  // 15 fps
         }

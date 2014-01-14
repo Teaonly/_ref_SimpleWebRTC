@@ -66,10 +66,9 @@ protected:
 RtcStream::RtcStream(const std::string& id, 
             webrtc::PeerConnectionFactoryInterface* factory, 
             cricket::VideoCapturer* vc, 
-            webrtc::VideoRendererInterface* vr,
-            webrtc::AudioSourceInterface* as):
+            webrtc::VideoRendererInterface* vr):
             id_(id), factory_(factory),
-            videoRenderer_(vr), audioSource_(as), videoCapturer_(vc) {
+            videoCapturer_(vc), videoRenderer_(vr) {
 
     webrtc::PeerConnectionInterface::IceServers servers;
     webrtc::PeerConnectionInterface::IceServer server;
@@ -236,10 +235,12 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
     talk_base::scoped_refptr<webrtc::MediaStreamInterface> stream = 
             factory_->CreateLocalMediaStream("simple_stream");
 
-    if ( enableVoice && audioSource_ != NULL) {
+    if ( enableVoice) {
+         
         talk_base::scoped_refptr<webrtc::AudioTrackInterface> audio_track(
                 factory_->CreateAudioTrack(
-                    "simple_voice", audioSource_));        
+                        "simple_voice", factory_->CreateAudioSource(NULL)));
+
         stream->AddTrack(audio_track);
     }
 
