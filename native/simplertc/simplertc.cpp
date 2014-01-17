@@ -10,6 +10,7 @@
 
 enum {
     MSG_RTC_CALL,
+    MSG_AUDIO_TIMER,
 };
 
 SimpleRTC::SimpleRTC(const std::string& myName, bool isCaller) {
@@ -21,9 +22,13 @@ SimpleRTC::SimpleRTC(const std::string& myName, bool isCaller) {
     signal_thread_ = new talk_base::Thread();
     signal_thread_->Start();
 
-    webrtc::SimpleAudioDevice* adm = new webrtc::SimpleAudioDevice();
-    factory_ = webrtc::CreatePeerConnectionFactory(NULL, NULL, adm, NULL, NULL); 
-
+#if 1
+    adm_ = new webrtc::SimpleAudioDevice();
+    signal_thread_->PostDelayed(10, this, MSG_AUDIO_TIMER);
+    factory_ = webrtc::CreatePeerConnectionFactory(NULL, NULL, adm_, NULL, NULL); 
+#else
+    factory_ = webrtc::CreatePeerConnectionFactory(); 
+#endif
     renderer_ = new SimpleVideoRenderer();
 
     capturer_ = new SimpleCapturer();    
@@ -58,7 +63,12 @@ void SimpleRTC::OnMessage(talk_base::Message *msg) {
     switch (msg->message_id) {
         case MSG_RTC_CALL:
             makeCall();
-            break;     
+            break;    
+
+        case MSG_AUDIO_TIMER:
+            signal_thread_->PostDelayed(10, this, MSG_AUDIO_TIMER);
+            adm_->Test();
+            break;
     }
 }
 
@@ -96,13 +106,13 @@ void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std
             answerCall(); 
         }
     } else if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
-        stream_->SetupLocalStream(false, true);
+        stream_->SetupLocalStream(true, true);
         stream_->CreateOfferDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         if ( stream_ != NULL ) {
             stream_->SetRemoteDescription( msgBody[2] );
             if ( isCaller_ == false) {
-                stream_->SetupLocalStream(false, true);
+                stream_->SetupLocalStream(true, true);
                 stream_->CreateAnswerDescription(); 
             }
         } 

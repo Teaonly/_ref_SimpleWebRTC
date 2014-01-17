@@ -27,6 +27,8 @@
             'simplertc/simplerenderer.cpp',
             'simplertc/simplecapturer.h',
             'simplertc/simplecapturer.cpp',
+            'simplertc/simpleaudiodevice.h',
+            'simplertc/simpleaudiodevice.cpp',
         ],
     },
     ],
