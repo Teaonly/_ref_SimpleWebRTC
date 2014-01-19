@@ -12,7 +12,9 @@ enum { kAdmMaxIdleTimeProcess = 1000 };
 SimpleAudioDevice::SimpleAudioDevice() :
         critSect_(*CriticalSectionWrapper::CreateCriticalSection()),
         ptrCbAudioDeviceObserver_(NULL),
-        ptrCbAudioTransport_(NULL) {
+        ptrCbAudioTransport_(NULL),
+        isRecording_(false),
+        isPlayouting_(false) {
     
 }
 
@@ -42,33 +44,49 @@ void SimpleAudioDevice::Test() {
     static unsigned char buffer[40960];
     uint32_t samples = 0;
     uint32_t micLevel;
+    int ret;
     if ( ptrCbAudioTransport_ != NULL) {
-        int ret = ptrCbAudioTransport_->NeedMorePlayData(
-                80,
-                2,
-                1,
-                16000,
-                buffer,
-                samples);
+        if ( isPlayouting_ ) {
+            ret = ptrCbAudioTransport_->NeedMorePlayData(
+                    160,
+                    2,
+                    1,
+                    16000,
+                    buffer,
+                    samples);
+            if ( ret == 0) {
+                static FILE *fp = NULL;
+                if ( fp == NULL) {
+                    fp = fopen("./test.pcm", "wb");
+                }
+                fwrite(buffer, 160*2, 1, fp);
+            }
+        }
+        
+        if ( isRecording_ ) {
+            static FILE *fp = NULL;
+            if ( fp == NULL) {
+                fp = fopen("./short16.pcm", "rb");
+            }
+            if ( feof(fp) ) {
+                fseek(fp, 0l, SEEK_SET);
+            }
+            fread(buffer, 160*2, 1, fp);
 
-        ret = ptrCbAudioTransport_->RecordedDataIsAvailable(
-                buffer,
-                160,
-                2,
-                1,
-                16000,
-                0,
-                0,
-                0,
-                100,
-                micLevel);
+            ret = ptrCbAudioTransport_->RecordedDataIsAvailable(
+                    buffer,
+                    160,
+                    2,
+                    1,
+                    16000,
+                    0,
+                    0,
+                    0,
+                    0,
+                    micLevel);
+        }
     }    
     
-    static FILE* fp = NULL;
-    if ( fp == NULL) {
-        fp = fopen("./test.pcm", "wb");
-    }
-    fwrite(buffer, samples*2, 1, fp);
 }
 
 }  // namespace webrtc

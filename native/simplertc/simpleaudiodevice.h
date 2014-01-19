@@ -42,11 +42,12 @@ public: // AudioDeviceModule
     virtual bool Initialized() const { return true; }
 
     // Device enumeration
-    virtual int16_t PlayoutDevices() { return 0; }
-    virtual int16_t RecordingDevices() { return 0; }
+    virtual int16_t PlayoutDevices() { return 1; }
+    virtual int16_t RecordingDevices() { return 1; }
     virtual int32_t PlayoutDeviceName(uint16_t index,
                             char name[kAdmMaxDeviceNameSize],
                             char guid[kAdmMaxGuidSize]) {
+
         return 0;
     }
     virtual int32_t RecordingDeviceName(uint16_t index,
@@ -62,7 +63,10 @@ public: // AudioDeviceModule
     virtual int32_t SetRecordingDevice(WindowsDeviceType device) { return 0; }
     
     // Audio transport initialization
-    virtual int32_t PlayoutIsAvailable(bool* available) { return 0; }
+    virtual int32_t PlayoutIsAvailable(bool* available) { 
+        *available = true;
+        return 0; 
+    }
     virtual int32_t InitPlayout() { return 0; }
     virtual bool PlayoutIsInitialized() const { return true; }
     virtual int32_t RecordingIsAvailable(bool* available) { return 0; }
@@ -70,19 +74,35 @@ public: // AudioDeviceModule
     virtual bool RecordingIsInitialized() const { return true; }
 
     // Audio transport control
-    virtual int32_t StartPlayout() { return 0; }
-    virtual int32_t StopPlayout() { return 0; }
-    virtual bool Playing() const { return false; }
-    virtual int32_t StartRecording() { return 0; }
-    virtual int32_t StopRecording() { return 0; }
-    virtual bool Recording() const { return false; }
+    virtual int32_t StartPlayout() { 
+        isPlayouting_ = true;
+        return 0; 
+    }
+    virtual int32_t StopPlayout() {
+        isPlayouting_ = false;
+        return 0; 
+    }
+    virtual bool Playing() const { 
+        return isPlayouting_; 
+    }
+    virtual int32_t StartRecording() { 
+        isRecording_ = true;
+        return 0; 
+    }
+    virtual int32_t StopRecording() {
+        isRecording_ = false;
+        return 0; 
+    }
+    virtual bool Recording() const { 
+        return isRecording_;
+    }
 
     // Native sample rate controls (samples/sec)
     virtual int32_t SetRecordingSampleRate(const uint32_t samplesPerSec) {
         return 0;
     }
     virtual int32_t RecordingSampleRate(uint32_t* samplesPerSec) const {
-        *samplesPerSec = 8000;
+        *samplesPerSec = 16000;
         return 0;
     }
     virtual int32_t SetPlayoutSampleRate(const uint32_t samplesPerSec) {
@@ -163,7 +183,7 @@ public: // AudioDeviceModule
     
     // Stereo support
     virtual int32_t StereoPlayoutIsAvailable(bool* available) const {
-        *available = true;
+        *available = false;
         return 0;
     }
     virtual int32_t SetStereoPlayout(bool enable) { 
@@ -190,8 +210,14 @@ public: // AudioDeviceModule
         return 0;
     }
     // TODO
-    virtual int32_t SetRecordingChannel(const ChannelType channel) { return 0; }
-    virtual int32_t RecordingChannel(ChannelType* channel) const { return 0; }
+    virtual int32_t SetRecordingChannel(const ChannelType channel) { 
+        channelType_ = channel;
+        return 0; 
+    }
+    virtual int32_t RecordingChannel(ChannelType* channel) const {
+        *channel = channelType_; 
+        return 0; 
+    }
 
     // Volume control based on the Windows Wave API (Windows only)
     virtual int32_t SetWaveOutVolume(uint16_t volumeLeft,
@@ -200,8 +226,8 @@ public: // AudioDeviceModule
                         uint16_t* volumeRight) const { return 0; }
     
     // Microphone Automatic Gain Control (AGC)
-    virtual int32_t SetAGC(bool enable) { return 0; }
-    virtual bool AGC() const { return true; }
+    virtual int32_t SetAGC(bool enable) { return -1; }
+    virtual bool AGC() const { return false; }
 
     // CPU load
     virtual int32_t CPULoad(uint16_t* load) const { return -1; }
@@ -234,7 +260,10 @@ private:
     CriticalSectionWrapper&     critSect_;
     AudioDeviceObserver*        ptrCbAudioDeviceObserver_;
     AudioTransport*             ptrCbAudioTransport_;
-   
+    
+    ChannelType                 channelType_; 
+    bool                        isRecording_;
+    bool                        isPlayouting_;   
 };
 
 }  // namespace webrtc

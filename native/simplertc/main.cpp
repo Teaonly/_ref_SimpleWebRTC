@@ -10,8 +10,8 @@
 
 int main(int argc, char *argv[]) {
     //talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
-    talk_base::LogMessage::LogToDebug(talk_base::LS_WARNING);
-    //talk_base::LogMessage::LogToDebug(talk_base::LS_ERROR);
+    //talk_base::LogMessage::LogToDebug(talk_base::LS_WARNING);
+    talk_base::LogMessage::LogToDebug(talk_base::LS_ERROR);
     talk_base::LogMessage::LogTimestamps();
     talk_base::LogMessage::LogThreads();
 
