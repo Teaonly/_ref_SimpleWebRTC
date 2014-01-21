@@ -54,25 +54,9 @@ void SimpleAudioDevice::Test() {
                     16000,
                     buffer,
                     samples);
-            if ( ret == 0) {
-                static FILE *fp = NULL;
-                if ( fp == NULL) {
-                    fp = fopen("./test.pcm", "wb");
-                }
-                fwrite(buffer, 160*2, 1, fp);
-            }
         }
         
         if ( isRecording_ ) {
-            static FILE *fp = NULL;
-            if ( fp == NULL) {
-                fp = fopen("./short16.pcm", "rb");
-            }
-            if ( feof(fp) ) {
-                fseek(fp, 0l, SEEK_SET);
-            }
-            fread(buffer, 160*2, 1, fp);
-
             ret = ptrCbAudioTransport_->RecordedDataIsAvailable(
                     buffer,
                     160,
