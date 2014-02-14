@@ -181,7 +181,7 @@ var onMessage = function(remote, msg) {
             if ( msg[1] === "media" ) {
                 myConfig.remote = remote;
                 myConfig.state = 1;
-                navigator.webkitGetUserMedia({audio:true, video:true}, function(stream) {
+                getUserMedia({audio:true, video:true}, function(stream) {
                     myPeer.sendMessage(myConfig.remote, "call:ok"); 
                     myConfig.state = 2;
                     myConfig.stream = stream;
@@ -217,7 +217,6 @@ var onMessage = function(remote, msg) {
             }
         }
     } else if ( msg.length === 3 && msg[0] === "rtc" ) {
-        console.log(msg);
         if ( myConfig.state === 2 && myConfig.remote === remote ) {
             myRTC.processRTCMessage( msg ); 
         }

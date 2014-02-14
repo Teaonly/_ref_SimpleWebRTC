@@ -9,10 +9,12 @@
 #include "talk/base/thread.h"
 #include "talk/session/media/channelmanager.h"
 
+#include "fakedtlsidentityservice.h"
+
 class Peer;
 
 class RtcStream : public webrtc::PeerConnectionObserver, 
-                 public sigslot::has_slots<> {
+                  public sigslot::has_slots<> {
 public:
     RtcStream(const std::string& id, webrtc::PeerConnectionFactoryInterface* factory, 
             cricket::VideoCapturer* vc, 
@@ -54,6 +56,8 @@ protected:
 
 protected:
     std::string id_;
+
+    FakeIdentityService myDTLS;
 
     webrtc::PeerConnectionFactoryInterface* factory_;
 

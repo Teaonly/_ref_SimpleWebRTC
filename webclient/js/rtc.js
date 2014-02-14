@@ -10,10 +10,18 @@ var myRTC = {
         if ( msg.length === 3 && msg[0] === "rtc" && msg[1] === "desc" ) {
             var desc = Base64.decode( msg[2] );
             var remoteDesc = new RTCSessionDescription(JSON.parse(desc));
-            console.log(remoteDesc);
-            myRTC._peerConnection.setRemoteDescription( remoteDesc );  
+            console.log("<<<<<< RECV REMOVE DESC <<<<< ");
+            myRTC._peerConnection.setRemoteDescription( remoteDesc , function() {
+                    
+                    }, function(err) {
+                        console.log("######## setRemoteDescription error #####:" + err.message);
+                    }); 
             if ( myRTC._isCaller === false) {
-                myRTC._peerConnection.createAnswer( myRTC._onLocalDescription , null, { 'mandatory': { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } });
+                //{ 'mandatory': { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } });
+                console.log(">>>>> CREATE ANSWER >>>>>");
+                myRTC._peerConnection.createAnswer( myRTC._onLocalDescription , function(err) {
+                            console.log("######### createAnswer error ##########:" + err.message);
+                        }, null);
             }
         } else if ( msg.length === 3 && msg[0] === "rtc" && msg[1] === "cand" ) {
             var cand = Base64.decode(msg[2]);
@@ -25,7 +33,10 @@ var myRTC = {
     initWithCall: function(remote, remoteVideo, stream) {
         myRTC._isCaller = true;
         myRTC._init(remote, remoteVideo, stream);
-        myRTC._peerConnection.createOffer(myRTC._onLocalDescription);
+        console.log(">>>>> CREATE OFFER >>>>>");
+        myRTC._peerConnection.createOffer(myRTC._onLocalDescription, function(err) {
+                        console.log("####### creatOffer error#########:" + err.message);
+                }, null);
     },
 
     initWithAnswer: function(remote, remoteVideo, stream) {
@@ -42,8 +53,14 @@ var myRTC = {
 
    // callbacks from PeerConnection and userMedia objects
     _onLocalDescription: function(desc) {
-        myRTC._peerConnection.setLocalDescription(desc);
-        console.log(desc);
+        console.log(">>>>>> get and set Local DESC>>>>");
+        myRTC._peerConnection.setLocalDescription(desc, function() {
+                    console.log(" >>>>>>> setLocalDescription is OK>>>");
+                }, function(err) {
+                    console.log("###### setLocalDescription error ###:" + err.message);
+                });
+
+
         var descJsonObj = JSON.stringify(desc);
         var descBE = Base64.encode (descJsonObj);
         myRTC.onMessageOut(myRTC._remote, "rtc:desc:" + descBE );
@@ -56,7 +73,6 @@ var myRTC = {
         }
     },
     _onAddedRTCStream: function(stream) {
-        console.log( stream );
         if ( myRTC._remoteVideo != null ) {
             //myRTC._remoteVideo.src = webkitURL.createObjectURL(stream.stream);
             attachMediaStream( myRTC._remoteVideo, stream.stream);
