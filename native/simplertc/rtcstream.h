@@ -5,11 +5,10 @@
 #include "talk/app/webrtc/peerconnectionfactory.h"
 #include "talk/app/webrtc/mediastreaminterface.h"
 #include "talk/app/webrtc/peerconnectioninterface.h"
+#include "talk/app/webrtc/test/fakedtlsidentityservice.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/thread.h"
 #include "talk/session/media/channelmanager.h"
-
-#include "fakedtlsidentityservice.h"
 
 class Peer;
 
