@@ -1,10 +1,7 @@
 //////////////////////////////////////////////
 // RTC object define
 //////////////////////////////////////////////
-SessionDescription = window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.RTCSessionDescription;
-IceCandidate = window.webkitRTCIceCandidate || window.mozRTCIceCandidate || window.RTCIceCandidate;
-PeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
-IceServers = { "iceServers": [ ] };
+IceServers = { "iceServers": [ createIceServer("stun:stunserver.org:3478") ] };
 
 var myRTC = {
     onMessageOut: null,
@@ -12,7 +9,7 @@ var myRTC = {
     processRTCMessage:  function(msg) {
         if ( msg.length === 3 && msg[0] === "rtc" && msg[1] === "desc" ) {
             var desc = Base64.decode( msg[2] );
-            var remoteDesc = new SessionDescription(JSON.parse(desc));
+            var remoteDesc = new RTCSessionDescription(JSON.parse(desc));
             console.log(remoteDesc);
             myRTC._peerConnection.setRemoteDescription( remoteDesc );  
             if ( myRTC._isCaller === false) {
@@ -20,7 +17,7 @@ var myRTC = {
             }
         } else if ( msg.length === 3 && msg[0] === "rtc" && msg[1] === "cand" ) {
             var cand = Base64.decode(msg[2]);
-            var candObj =  new IceCandidate(JSON.parse(cand));
+            var candObj =  new RTCIceCandidate(JSON.parse(cand));
             myRTC._peerConnection.addIceCandidate(candObj);
         }
     },    
@@ -61,7 +58,8 @@ var myRTC = {
     _onAddedRTCStream: function(stream) {
         console.log( stream );
         if ( myRTC._remoteVideo != null ) {
-            myRTC._remoteVideo.src = webkitURL.createObjectURL(stream.stream);
+            //myRTC._remoteVideo.src = webkitURL.createObjectURL(stream.stream);
+            attachMediaStream( myRTC._remoteVideo, stream.stream);
         }
     },
 
@@ -70,7 +68,7 @@ var myRTC = {
         myRTC._remoteVideo = remoteVideo;
         myRTC._localStream = stream;
 
-        myRTC._peerConnection = new PeerConnection(IceServers);
+        myRTC._peerConnection = new RTCPeerConnection(IceServers);
         myRTC._peerConnection.onicecandidate = myRTC._onLocalCandidate;
         myRTC._peerConnection.onaddstream = myRTC._onAddedRTCStream;
         if ( stream != null) {

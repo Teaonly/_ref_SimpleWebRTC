@@ -83,14 +83,14 @@ var pageOnline = {
         }
         $(".btn_call1").bind("click", function() {
             var uname = $(this).attr("user_name");
-            navigator.webkitGetUserMedia({audio:true, video:true}, function(stream) {
+            getUserMedia({audio:true, video:true}, function(stream) {
                 startCallWithMedia(uname, stream);
             }, function() {
             }); 
         });
         $(".btn_call2").bind("click", function() {
             var uname = $(this).attr("user_name");
-            navigator.webkitGetUserMedia({audio:true, video:true}, function(stream) {
+            getUserMedia({audio:true, video:true}, function(stream) {
                 startCallWithoutMedia(uname, stream); 
             }, function() {
             }); 
