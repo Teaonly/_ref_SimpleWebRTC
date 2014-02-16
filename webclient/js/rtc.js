@@ -13,7 +13,7 @@ var myRTC = {
             console.log(remoteDesc);
             myRTC._peerConnection.setRemoteDescription( remoteDesc );  
             if ( myRTC._isCaller === false) {
-                myRTC._peerConnection.createAnswer( myRTC._onLocalDescription );
+                myRTC._peerConnection.createAnswer( myRTC._onLocalDescription , null, { 'mandatory': { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } });
             }
         } else if ( msg.length === 3 && msg[0] === "rtc" && msg[1] === "cand" ) {
             var cand = Base64.decode(msg[2]);
