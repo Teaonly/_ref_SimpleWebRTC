@@ -1,4 +1,4 @@
-package com.beginvision.demo;
+package com.beginvision.simplertc;
 
 import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;

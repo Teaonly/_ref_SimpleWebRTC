@@ -111,7 +111,8 @@ void SimpleCapturer::onCaptureTimer(int64 ts) {
     frame.elapsed_time = ts;
     frame.time_stamp = ts;
     frame.data = yuvBuffer_;
-    
+
+    if (0)     
     {
         static FILE* fp = NULL;
         if (fp == NULL) {

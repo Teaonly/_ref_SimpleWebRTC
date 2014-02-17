@@ -1,4 +1,4 @@
-package com.beginvision.demo;
+package com.beginvision.simplertc;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -26,7 +26,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class VibeActivity extends Activity
+public class DemoActivity extends Activity
         implements CameraView.CameraReadyCallback, OverlayView.UpdateDoneCallback
 {
     public static String TAG="BV";
@@ -34,7 +34,6 @@ public class VibeActivity extends Activity
     private ReentrantLock previewLock = new ReentrantLock();
     private CameraView cameraView = null;
     private OverlayView overlayView = null;
-    private Bitmap  resultBitmap = null;    
 
     boolean beginDemo = false;
 
@@ -50,12 +49,14 @@ public class VibeActivity extends Activity
 
         // load and setup GUI
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.vibe);
+        setContentView(R.layout.main);
 
         TextView tv = (TextView)findViewById(R.id.tv_message);
         tv.setText("This a VIBE (VIsual Background Extractor) demo");
         Button btn = (Button)findViewById(R.id.btn_control);
         btn.setOnClickListener(controlAction);
+
+        NativeAgent.init();
 
         // init camera
         initCamera();
@@ -90,7 +91,6 @@ public class VibeActivity extends Activity
     public void onCameraReady() {
         cameraView.StopPreview();
         cameraView.setupCamera(640, 480, 4, previewCb);
-        resultBitmap = Bitmap.createBitmap(cameraView.Width(), cameraView.Height(), Bitmap.Config.ARGB_8888);
         cameraView.StartPreview();
     }
 
@@ -133,9 +133,9 @@ public class VibeActivity extends Activity
         previewLock.lock(); 
         new Thread(new Runnable() {
                     public void run() {
-                        NativeAgent.updatePictureForResult("VIBE", yuvFrame, resultBitmap, cameraView.Width(), cameraView.Height());
-                        c.addCallbackBuffer(yuvFrame);
-                        new Handler(Looper.getMainLooper()).post( resultAction );
+                        //NativeAgent.updatePictureForResult("VIBE", yuvFrame, resultBitmap, cameraView.Width(), cameraView.Height());
+                        //c.addCallbackBuffer(yuvFrame);
+                        //new Handler(Looper.getMainLooper()).post( resultAction );
                     }
                 }).start();
     }
@@ -143,26 +143,15 @@ public class VibeActivity extends Activity
     private OnClickListener controlAction = new OnClickListener() {
         @Override
         public void onClick(View v) {
-            new Handler(Looper.getMainLooper()).postDelayed( beginAction, 2000); 
+            new Handler(Looper.getMainLooper()).postDelayed( beginAction, 100); 
         }   
     };
     
     private Runnable beginAction = new Runnable() {
         public void run() {
-            beginDemo = true;
+            //beginDemo = true;
+            NativeAgent.jmain("127.0.0.1", 19790, "rooma");
         }
     };
 
-    private Runnable resultAction = new Runnable() {
-        private int count = 0;
-        @Override 
-        public void run() {
-            count++;
-            if ( (count % 3) == 0) {
-                overlayView.DrawResult(resultBitmap);
-            } else {
-                previewLock.unlock(); 
-            }
-        }
-    };
 }

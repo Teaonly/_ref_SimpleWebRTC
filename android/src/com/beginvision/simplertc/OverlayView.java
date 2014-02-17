@@ -1,4 +1,4 @@
-package com.beginvision.demo;
+package com.beginvision.simplertc;
 
 import android.content.Context;
 import android.graphics.Bitmap;

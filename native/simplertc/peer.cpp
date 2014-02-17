@@ -1,7 +1,9 @@
 #include <iostream>
+
 #include "talk/base/socketstream.h"
 #include "talk/base/asyncsocket.h"
 
+#include "helper.h"
 #include "peer.h"
 
 Peer::Peer(const std::string &server, const unsigned short port, const std::string& id, const std::string& role, talk_base::Thread *worker_thread) {
@@ -55,6 +57,8 @@ int Peer::SendMessage(const std::string &to, const std::vector<std::string>& msg
 }
 
 void Peer::onStart_w() {
+
+    LOGD(">>>>>>>>>>>>>>OK>>>>>>>>>>");
 
     // Creating socket 
     talk_base::Thread* pth = talk_base::Thread::Current();
