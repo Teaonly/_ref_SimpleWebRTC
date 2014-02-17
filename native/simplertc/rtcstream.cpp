@@ -245,6 +245,7 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
     }
 
     //videoCapturer_ = OpenVideoCaptureDevice();
+    videoCapturer_->set_enable_video_adapter(false);
     if ( enableVideo && videoCapturer_ != NULL) {
         talk_base::scoped_refptr<webrtc::VideoSourceInterface> video_source(
             factory_->CreateVideoSource(videoCapturer_, NULL));
