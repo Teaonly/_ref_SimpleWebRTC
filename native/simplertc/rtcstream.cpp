@@ -132,8 +132,12 @@ void RtcStream::OnStateChange() {
     // TODO    
 }
 void RtcStream::OnMessage(const webrtc::DataBuffer& buffer) {
-    // TODO
+    std::string msg;
+    msg.assign(buffer.data.data(), buffer.data.length());
+
+    std::cout << "###### Get message from DataChannel : " << msg << std::endl;
 }
+
 void RtcStream::OnLocalDescription(webrtc::SessionDescriptionInterface* desc) {
     if ( desc != NULL) {
         connection_->SetLocalDescription(    
@@ -270,7 +274,9 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo, bool enable
         connection_->AddStream(stream, NULL);    
 
     if ( enableData ) {
-        //data_channel_ = connection_->CreateDataChannel("abmedia", 
+        webrtc::DataChannelInit dcSetting;
+        data_channel_ = connection_->CreateDataChannel("abmedia", &dcSetting); 
+        data_channel_->RegisterObserver(this);
     }
 }
 

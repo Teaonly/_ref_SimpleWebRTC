@@ -150,7 +150,7 @@ public class DemoActivity extends Activity
     private Runnable beginAction = new Runnable() {
         public void run() {
             //beginDemo = true;
-            NativeAgent.jmain("127.0.0.1", 19790, "rooma");
+            NativeAgent.jmain("192.168.43.248", 19790, "rooma");
         }
     };
 

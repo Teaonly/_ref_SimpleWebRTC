@@ -108,6 +108,9 @@ void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std
     } else if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
         stream_->SetupLocalStream(true, true, false);
         stream_->CreateOfferDescription();    
+    } else if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "dataok" ) {
+        stream_->SetupLocalStream(false, false, true);
+        stream_->CreateOfferDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         if ( stream_ != NULL ) {
             stream_->SetRemoteDescription( msgBody[2] );
@@ -144,7 +147,8 @@ void SimpleRTC::OnLocalDescription(RtcStream* stream, const std::string& desc) {
 void SimpleRTC::makeCall() {
     std::vector<std::string> msgBody;
     msgBody.push_back( "call");
-    msgBody.push_back( "media");
+    //msgBody.push_back( "media");
+    msgBody.push_back("data");
     peer_->SendMessage( stream_->id(), msgBody);
 }
 
