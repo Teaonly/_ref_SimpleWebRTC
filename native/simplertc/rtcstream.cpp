@@ -129,7 +129,13 @@ void RtcStream::OnDataChannel(webrtc::DataChannelInterface* data_channel) {
     // TODO
 }
 void RtcStream::OnStateChange() {
-    // TODO    
+    if ( data_channel_.get() != NULL) {
+        webrtc::DataChannelInterface::DataState st = data_channel_->state();
+        if ( st == webrtc::DataChannelInterface::kOpen ) {
+            std::string data = "Hello universe";
+            data_channel_->Send( webrtc::DataBuffer(data) );
+        }
+    } 
 }
 void RtcStream::OnMessage(const webrtc::DataBuffer& buffer) {
     std::string msg;
