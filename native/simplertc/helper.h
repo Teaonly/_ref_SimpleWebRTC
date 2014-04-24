@@ -8,6 +8,10 @@
 #define  LOG_TAG    "TEAONLY"
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
 
-#endif      // endof ANDROID
+#else      // endof ANDROID
+
+#define LOGD(...)
+
+#endif
 
 #endif

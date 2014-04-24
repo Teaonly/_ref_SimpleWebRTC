@@ -33,11 +33,13 @@ int32_t SimpleAudioDevice::Process() {
 int32_t SimpleAudioDevice::RegisterEventObserver(AudioDeviceObserver* eventCallback) {
     CriticalSectionScoped lock(&critSect_);
     ptrCbAudioDeviceObserver_ = eventCallback;
+    return 0;
 }
 
 int32_t SimpleAudioDevice::RegisterAudioCallback(AudioTransport* audioCallback) {
     CriticalSectionScoped lock(&critSect_);
     ptrCbAudioTransport_ = audioCallback;
+    return 0;
 }
 
 void SimpleAudioDevice::Test() {

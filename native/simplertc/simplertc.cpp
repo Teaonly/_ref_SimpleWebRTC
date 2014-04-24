@@ -106,13 +106,13 @@ void SimpleRTC::onRemoteMessage(const std::string &remote, const std::vector<std
             answerCall(); 
         }
     } else if ( msgBody.size() == 2 && msgBody[0] == "call" && msgBody[1] == "ok" ) {
-        stream_->SetupLocalStream(true, true);
+        stream_->SetupLocalStream(true, true, false);
         stream_->CreateOfferDescription();    
     } else if ( msgBody.size() == 3 && msgBody[0] == "rtc" && msgBody[1] == "desc" ) {
         if ( stream_ != NULL ) {
             stream_->SetRemoteDescription( msgBody[2] );
             if ( isCaller_ == false) {
-                stream_->SetupLocalStream(true, true);
+                stream_->SetupLocalStream(true, true, false);
                 stream_->CreateAnswerDescription(); 
             }
         } 

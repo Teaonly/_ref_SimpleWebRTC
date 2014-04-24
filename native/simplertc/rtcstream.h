@@ -13,6 +13,7 @@
 class Peer;
 
 class RtcStream : public webrtc::PeerConnectionObserver, 
+                  public webrtc::DataChannelObserver, 
                   public sigslot::has_slots<> {
 public:
     RtcStream(const std::string& id, webrtc::PeerConnectionFactoryInterface* factory, 
@@ -26,7 +27,7 @@ public:
     virtual void CreateAnswerDescription();
     virtual void SetRemoteCandidate(const std::string& msg);
     virtual void SetRemoteDescription(const std::string& msg);
-    virtual void SetupLocalStream(bool enableVoice, bool enableVideo);
+    virtual void SetupLocalStream(bool enableVoice, bool enableVideo, bool enableData);
 
     sigslot::signal2<RtcStream*, const std::string&> SignalSessionDescription;
     sigslot::signal2<RtcStream*, const std::string&> SignalIceCandidate;
@@ -38,7 +39,8 @@ protected:
     virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate);
     virtual void OnAddStream(webrtc::MediaStreamInterface* stream);
     virtual void OnRemoveStream(webrtc::MediaStreamInterface* stream);
-     
+    virtual void OnDataChannel(webrtc::DataChannelInterface* data_channel);
+
     virtual void OnRenegotiationNeeded() {}
     virtual void OnStateChange(
             webrtc::PeerConnectionObserver::StateType state_changed) {}
@@ -47,6 +49,12 @@ protected:
     virtual void OnIceGatheringChange(
             webrtc::PeerConnectionInterface::IceGatheringState new_state) {}
     virtual void OnError() {}
+
+    //
+    // DataChannelObserver implementation 
+    //
+    virtual void OnStateChange();
+    virtual void OnMessage(const webrtc::DataBuffer& buffer);
 
     //
     // Callback from CreateSessionDescriptionObserver
@@ -61,7 +69,8 @@ protected:
     webrtc::PeerConnectionFactoryInterface* factory_;
 
     talk_base::scoped_refptr<webrtc::PeerConnectionInterface> connection_;
-    
+    talk_base::scoped_refptr<webrtc::DataChannelInterface> data_channel_;
+
     cricket::VideoCapturer* videoCapturer_;
     webrtc::VideoRendererInterface* videoRenderer_;
 };

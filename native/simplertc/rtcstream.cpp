@@ -7,6 +7,8 @@
 #include "talk/base/json.h"
 #include "talk/app/webrtc/peerconnectioninterface.h"
 
+#include "simpleconstraints.h"
+
 // Names used for a IceCandidate JSON object.
 const char kCandidateSdpMidName[] = "sdpMid";
 const char kCandidateSdpMlineIndexName[] = "sdpMLineIndex";
@@ -75,10 +77,13 @@ RtcStream::RtcStream(const std::string& id,
     server.uri = "stun:stun.l.google.com:19302";
     servers.push_back(server);
     
+    webrtc::SimpleConstraints myConstraints;
+    myConstraints.SetAllowRtpDataChannels(); 
     connection_ = factory_->CreatePeerConnection(servers, 
-                                                 NULL,
+                                                 &myConstraints,
                                                  &myDTLS,
                                                  this); 
+    data_channel_ = NULL;
 }
 
 RtcStream::~RtcStream() {
@@ -120,6 +125,15 @@ void RtcStream::OnIceCandidate(const webrtc::IceCandidateInterface* candidate) {
     SignalIceCandidate(this, encodedCand);
 }
 
+void RtcStream::OnDataChannel(webrtc::DataChannelInterface* data_channel) {
+    // TODO
+}
+void RtcStream::OnStateChange() {
+    // TODO    
+}
+void RtcStream::OnMessage(const webrtc::DataBuffer& buffer) {
+    // TODO
+}
 void RtcStream::OnLocalDescription(webrtc::SessionDescriptionInterface* desc) {
     if ( desc != NULL) {
         connection_->SetLocalDescription(    
@@ -228,15 +242,13 @@ static cricket::VideoCapturer* OpenVideoCaptureDevice() {
   return capturer;
 }
 
-void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
-    if ( enableVoice == false && enableVideo == false)
+void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo, bool enableData) {
+    if ( enableVoice == false && enableVideo == false && enableData == false)
         return;
 
     talk_base::scoped_refptr<webrtc::MediaStreamInterface> stream = 
             factory_->CreateLocalMediaStream("simple_stream");
-
     if ( enableVoice) {
-         
         talk_base::scoped_refptr<webrtc::AudioTrackInterface> audio_track(
                 factory_->CreateAudioTrack(
                         "simple_voice", factory_->CreateAudioSource(NULL)));
@@ -254,8 +266,12 @@ void RtcStream::SetupLocalStream(bool enableVoice, bool enableVideo) {
                     "simple_video", video_source));
         stream->AddTrack(video_track);
     }
+    if ( enableVoice || enableVideo )
+        connection_->AddStream(stream, NULL);    
 
-    connection_->AddStream(stream, NULL);    
+    if ( enableData ) {
+        //data_channel_ = connection_->CreateDataChannel("abmedia", 
+    }
 }
 
 void RtcStream::CreateOfferDescription() {
