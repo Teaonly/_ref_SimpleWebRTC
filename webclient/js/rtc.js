@@ -39,6 +39,16 @@ var myRTC = {
                 }, null);
     },
 
+    initWithData: function(remote) {
+        myRTC._isCaller = true;
+        myRTC._initData(remote);
+        console.log(">>>>> CREATE DATA OFFER >>>>>");
+        myRTC._peerConnection.createOffer(myRTC._onLocalDescription, function(err) {
+                        console.log("####### creatOffer error#########:" + err.message);
+                }, null);
+
+    },
+
     initWithAnswer: function(remote, remoteVideo, stream) {
         myRTC._isCaller = false;
         myRTC._init(remote, remoteVideo, stream);
@@ -78,24 +88,57 @@ var myRTC = {
             attachMediaStream( myRTC._remoteVideo, stream.stream);
         }
     },
+    _onAddedDataChannel: function(evt) {
+        console.log(">>>>> onAddedDataChannel >>>>");
+        myRTC._dataChannel = evt.channel;
+        myRTC._dataChannel.onopen = myRTC._onDataChannelState;
+        myRTC._dataChannel.onclose = myRTC._onDataChannelState;
+        myRTC._dataChannel.onmessage = myRTC._onDataChannelMessage;
+    },
+
+    _onDataChannelState: function() {
+        var readyState = myRTC._dataChannel.readyState;
+        console.log('Data channel state is: ' + readyState);
+        if (readyState === "open") {
+            myRTC._dataChannel.send("Hello World");        
+        } else {
+        }  
+    },
+
+    _onDataChannelMessage: function(evt) {
+        console.log('Data channel receive message: ' + evt.data);
+    },
 
     _init: function(remote, remoteVideo, stream) {
         myRTC._remote = remote;
         myRTC._remoteVideo = remoteVideo;
         myRTC._localStream = stream;
 
-        myRTC._peerConnection = new RTCPeerConnection(IceServers);
+        myRTC._peerConnection = new RTCPeerConnection(IceServers,  {optional: [{RtpDataChannels: true}]});
         myRTC._peerConnection.onicecandidate = myRTC._onLocalCandidate;
         myRTC._peerConnection.onaddstream = myRTC._onAddedRTCStream;
+        myRTC._peerConnection.ondatachannel = myRTC._onAddedDataChannel;
         if ( stream != null) {
             myRTC._peerConnection.addStream( stream);
         }
+    },
+
+    _initData: function(remote) {
+        myRTC._remote = remote;
+
+        myRTC._peerConnection = new RTCPeerConnection(IceServers,  {optional: [{RtpDataChannels: true}]});
+        myRTC._peerConnection.onicecandidate = myRTC._onLocalCandidate;
+        myRTC._dataChannel = myRTC._peerConnection.createDataChannel("sendDataChannel",{reliable: false});
+        myRTC._dataChannel.onopen = myRTC._onDataChannelState;
+        myRTC._dataChannel.onclose = myRTC._onDataChannelState;
+        myRTC._dataChannel.onmessage = myRTC._onDataChannelMessage;
     },
 
     _remote:         "",
     _remoteVideo:    null,
     _localStream:    null,
     _isCaller:       true,
-    _peerConnection: null
+    _peerConnection: null,
+    _dataChannel:    null
 };
 

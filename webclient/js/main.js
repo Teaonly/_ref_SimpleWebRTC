@@ -78,9 +78,12 @@ var pageOnline = {
             tr = tr + "<td><button class='btn btn-mini btn-info btn_call1' type='button' user_name='" + p.name + "'>Call with Media</button>";
             tr = tr + "&nbsp;&nbsp;&nbsp;"
             tr = tr + "<button class='btn btn-mini btn-info btn_call2' type='button' user_name='" + p.name + "'>Call without Media</button>";
+            tr = tr + "&nbsp;&nbsp;&nbsp;"
+            tr = tr + "<button class='btn btn-mini btn-info btn_call3' type='button' user_name='" + p.name + "'>Call with Data</button>";
             tr = tr + "</tr>";
             $("#list_online").append(tr);
         }
+        
         $(".btn_call1").bind("click", function() {
             var uname = $(this).attr("user_name");
             getUserMedia({audio:true, video:true}, function(stream) {
@@ -88,13 +91,18 @@ var pageOnline = {
             }, function() {
             }); 
         });
+        
         $(".btn_call2").bind("click", function() {
             var uname = $(this).attr("user_name");
             getUserMedia({audio:true, video:true}, function(stream) {
                 startCallWithoutMedia(uname, stream); 
             }, function() {
             }); 
-           
+        });
+        
+        $(".btn_call3").bind("click", function() {
+            var uname = $(this).attr("user_name");
+            startCallWithData(uname); 
         });
 
     }
@@ -143,6 +151,12 @@ var startCallWithoutMedia = function(remote, stream) {
     myConfig.remote = remote;
     myConfig.stream = stream;
     myPeer.sendMessage(remote, "call:null" ); 
+};
+
+var startCallWithData = function(remote) {
+    myConfig.state = 1;
+    myConfig.remote = remote;
+    myPeer.sendMessage(remote, "call:data" ); 
 };
 
 var onLogin = function() {
@@ -203,6 +217,14 @@ var onMessage = function(remote, msg) {
                 myRTC.initWithAnswer( myConfig.remote, myConfig.remoteVideo, null);
                 pageOnline.hide();
                 pageRTC.show();                
+            } else if ( msg[1] === "data" ) {
+                myConfig.remote = remote;
+                myConfig.state = 2;
+                myPeer.sendMessage(myConfig.remote, "call:dataok");
+                myConfig.stream = null;
+                myRTC.initWithAnswer( myConfig.remote, myConfig.remoteVideo, null);
+                pageOnline.hide();
+                pageRTC.show();         
             } 
         } else if ( myConfig.state === 1 && myConfig.remote === remote) {
             if ( msg[1] === "error") {
@@ -214,6 +236,11 @@ var onMessage = function(remote, msg) {
                 myRTC.initWithCall( myConfig.remote, myConfig.remoteVideo, myConfig.stream);
                 pageOnline.hide();
                 pageRTC.show();                
+            } else if (msg[1] === "dataok") {
+                myConfig.state = 2;
+                myRTC.initWithData( myConfig.remote);
+                pageOnline.hide();
+                pageRTC.show();      
             }
         }
     } else if ( msg.length === 3 && msg[0] === "rtc" ) {
